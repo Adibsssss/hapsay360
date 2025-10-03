@@ -24,6 +24,27 @@ export default function RootLayout() {
           headerShown: false,
         }}
       />
+
+      <Stack.Screen
+        name="appointment"
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="applicationform"
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="nearesthelp"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }
