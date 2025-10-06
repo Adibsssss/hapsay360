@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 
 // Reusable Components
 const SectionTitle = ({
@@ -241,24 +242,39 @@ export default function applicationform() {
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: bgColor }}
-      edges={["top", "left", "right"]}
+      edges={["left", "right"]}
     >
       {/* Header */}
-      <View
+      <LinearGradient
+        colors={["#3b3b8a", "#141545"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
         style={{
+          paddingHorizontal: 16,
+          paddingTop: 55,
+          paddingBottom: 10,
           flexDirection: "row",
           alignItems: "center",
-          padding: 16,
-          backgroundColor: "#1a1f4d",
         }}
       >
-        <Pressable onPress={() => router.back()} style={{ marginRight: 12 }}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+        <Pressable
+          className="mr-4"
+          onPress={() => router.back()}
+          style={{ padding: 4 }}
+        >
+          <Ionicons name="arrow-back" size={24} color="#ffffff" />
         </Pressable>
-        <Text style={{ color: "#fff", fontSize: 18, fontWeight: "bold" }}>
-          Application Profile
+        <Text
+          style={{
+            color: "white",
+            fontSize: 20,
+            fontWeight: "600",
+            letterSpacing: 0.5,
+          }}
+        >
+          Application Form
         </Text>
-      </View>
+      </LinearGradient>
 
       <ScrollView
         style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 24 }}

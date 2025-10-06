@@ -14,6 +14,7 @@ import { useState, useRef } from "react";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import Svg, { Defs, RadialGradient, Stop, Circle } from "react-native-svg";
+import { LinearGradient } from "expo-linear-gradient";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -62,25 +63,43 @@ export default function HomeScreen() {
   return (
     <SafeAreaView
       className="flex-1"
-      edges={["top", "left", "right"]}
+      edges={["left", "right"]}
       style={{ backgroundColor: isDark ? "#1a1f4d" : "#ffffff" }}
     >
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+      {/* Header with gradient background */}
+      <View className="relative">
+        <LinearGradient
+          colors={["#3b3b8a", "#141545"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={{
+            height: 220, // shorter header so it doesn't leave big space
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+          }}
+        >
+          <StatusBar barStyle="light-content" />
+          {/* Logo + Title */}
+          <View className="items-center">
+            <Image
+              source={require("../../assets/images/icon.png")}
+              style={{ width: 80, height: 80 }}
+              contentFit="contain"
+            />
+            <Text className="text-white text-2xl font-bold mt-2 tracking-widest">
+              HAPSAY360
+            </Text>
+          </View>
+        </LinearGradient>
 
-      {/* Header with blue background */}
-      <View className="pb-20 relative" style={{ backgroundColor: "#1a1f4d" }}>
-        {/* Logo + Title */}
-        <View className="items-center pt-6">
-          <Image
-            source={require("../../assets/images/icon.png")}
-            style={{ width: 80, height: 80 }}
-            contentFit="contain"
-          />
-          <Text className="text-white text-2xl font-bold mt-2">HAPSAY360</Text>
-        </View>
-
-        {/* Floating Search Bar */}
-        <View className="absolute left-0 right-0 -bottom-6 px-6 z-20">
+        {/* Floating Search Bar — centered near bottom of gradient */}
+        <View
+          className="absolute left-0 right-0 px-6 z-20"
+          style={{
+            bottom: -25, // overlaps slightly below gradient
+          }}
+        >
           <View className="bg-white rounded-xl flex-row items-center px-4 py-3.5 shadow-lg">
             <TextInput
               className="flex-1 text-gray-700 text-base"
@@ -101,7 +120,7 @@ export default function HomeScreen() {
         style={{ backgroundColor: isDark ? "#1a1f4d" : "#ffffff" }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingTop: 40,
+          paddingTop: 60, // enough to clear the search bar overlap
           paddingHorizontal: 16,
           paddingBottom: 0,
         }}

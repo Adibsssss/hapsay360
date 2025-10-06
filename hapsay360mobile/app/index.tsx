@@ -12,6 +12,7 @@ import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
 import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -50,16 +51,36 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         className="flex-1"
       >
-        {/* Header Section */}
-        <View className="bg-[#1a1a4a] items-center justify-center pt-20 pb-20">
-          <Image
-            source={require("../assets/images/icon.png")}
-            style={{ width: 80, height: 80 }}
-            contentFit="contain"
-          />
-          <Text className="text-white text-2xl font-bold tracking-wider">
-            HAPSAY360
-          </Text>
+        <View style={{ height: 300, width: "100%" }}>
+          <LinearGradient
+            colors={["#3b3b8a", "#141545"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+            }}
+          >
+            <StatusBar style="light" />
+            <Image
+              source={require("../assets/images/icon.png")}
+              style={{ width: 100, height: 100 }}
+              resizeMode="contain"
+            />
+            <Text
+              style={{
+                color: "white",
+                fontSize: 22,
+                fontWeight: "bold",
+                letterSpacing: 2,
+                marginTop: 10,
+              }}
+            >
+              HAPSAY360
+            </Text>
+          </LinearGradient>
         </View>
 
         {/* Form Section */}
