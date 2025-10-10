@@ -12,7 +12,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 
-// Reusable Components
 const SectionTitle = ({
   children,
   color,
@@ -236,7 +235,7 @@ export default function applicationform() {
       spouseQualifier,
     };
     console.log(profile);
-    router.push("/(tabs)");
+    router.push("bookappointmentscreen");
   };
 
   return (
