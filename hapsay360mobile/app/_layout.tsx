@@ -40,7 +40,7 @@ export default function RootLayout() {
       />
 
       <Stack.Screen
-        name="bookappointmentscreen"
+        name="bookpoliceclearancescreen"
         options={{
           headerShown: false,
         }}
@@ -48,6 +48,27 @@ export default function RootLayout() {
 
       <Stack.Screen
         name="bookpoliceclearance"
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="policeclearancepayment"
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="policeclearancesummary"
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="policeclearanceconfirmation"
         options={{
           headerShown: false,
         }}

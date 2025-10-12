@@ -235,7 +235,7 @@ export default function applicationform() {
       spouseQualifier,
     };
     console.log(profile);
-    router.push("bookappointmentscreen");
+    router.push("/bookpoliceclearancescreen");
   };
 
   return (

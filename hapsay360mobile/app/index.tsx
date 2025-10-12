@@ -21,23 +21,19 @@ export default function LoginScreen() {
 
   const handleLogin = () => {
     console.log("Login pressed");
-    // TODO: validate login credentials first
     router.replace("./(tabs)");
   };
 
   const handleGoogleLogin = () => {
     console.log("Google login pressed");
-    // Add Google OAuth logic
   };
 
   const handleFacebookLogin = () => {
     console.log("Facebook login pressed");
-    // Add Facebook OAuth logic
   };
 
   const handleForgotPassword = () => {
     console.log("Forgot password pressed");
-    // Navigate to forgot password screen
   };
 
   return (

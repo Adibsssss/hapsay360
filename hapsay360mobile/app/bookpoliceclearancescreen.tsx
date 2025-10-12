@@ -11,12 +11,12 @@ import {
   Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Home, Calendar, Grid, User } from "lucide-react-native";
+import { Home, Calendar, FileText, Grid, User } from "lucide-react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 
-export default function BookAppointmentScreen() {
+export default function BookPoliceClearanceScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -190,26 +190,21 @@ export default function BookAppointmentScreen() {
 
       {/* Bottom Navigation */}
       <View className="bg-white border-t border-gray-200 flex-row justify-around py-3">
-        <TouchableOpacity className="items-center flex-1">
-          <Home color="#9CA3AF" size={24} />
-          <Text className="text-gray-400 text-xs mt-1">Home</Text>
+        <TouchableOpacity className="items-center">
+          <Home size={24} color="#9CA3AF" />
+          <Text className="text-xs text-indigo-900 mt-1">Home</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity className="items-center flex-1">
-          <Calendar color="#9CA3AF" size={24} />
-          <Text className="text-gray-400 text-xs mt-1">Reports</Text>
+        <TouchableOpacity className="items-center">
+          <FileText size={24} color="#9CA3AF" />
+          <Text className="text-xs text-gray-500 mt-1">Reports</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity className="items-center flex-1">
-          <Grid color="#141545" size={24} />
-          <Text className="text-[#141545] text-xs mt-1 font-semibold">
-            Stories
-          </Text>
+        <TouchableOpacity className="items-center">
+          <FileText size={24} color="#312E81" />
+          <Text className="text-xs text-gray-500 mt-1">Clearance</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity className="items-center flex-1">
-          <User color="#9CA3AF" size={24} />
-          <Text className="text-gray-400 text-xs mt-1">Profile</Text>
+        <TouchableOpacity className="items-center">
+          <User size={24} color="#9CA3AF" />
+          <Text className="text-xs text-gray-500 mt-1">Profile</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

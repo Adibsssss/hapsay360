@@ -8,6 +8,7 @@ import {
   Pressable,
   StatusBar,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -43,7 +44,7 @@ const dates = Array.from({ length: 9 }, (_, i) => {
   date.setDate(today.getDate() + i);
   return {
     day: date.getDate(),
-    label: date.toLocaleDateString("en-US", { weekday: "short" }), // Mon, Tue, etc.
+    label: date.toLocaleDateString("en-US", { weekday: "short" }),
   };
 });
 
@@ -52,7 +53,8 @@ const timeSlots = {
   afternoon: ["1:00", "3:00", "4:00", "5:00"],
 };
 
-export default function BookPoliceClearanceApp() {
+export default function BookingPoliceClearance() {
+  const router = useRouter();
   const [purpose, setPurpose] = useState("");
   const [station, setStation] = useState("");
   const [selectedDate, setSelectedDate] = useState(today.getDate());
@@ -61,8 +63,8 @@ export default function BookPoliceClearanceApp() {
   const [showPurposeDropdown, setShowPurposeDropdown] = useState(false);
   const [showStationDropdown, setShowStationDropdown] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  // ✅ Show confirmation modal instead of step 2
   const handleProceed = () => {
     if (!purpose || !station) {
       alert("Please select purpose and police station");
@@ -73,7 +75,12 @@ export default function BookPoliceClearanceApp() {
 
   const handleConfirm = () => {
     setShowConfirmation(false);
-    alert("Appointment confirmed!");
+    setShowSuccess(true);
+  };
+
+  const handleGoToPayment = () => {
+    setShowSuccess(false);
+    router.push("/policeclearancepayment");
   };
 
   return (
@@ -93,7 +100,11 @@ export default function BookPoliceClearanceApp() {
           alignItems: "center",
         }}
       >
-        <Pressable className="mr-4" style={{ padding: 4 }}>
+        <Pressable
+          className="mr-4"
+          style={{ padding: 4 }}
+          onPress={() => router.back()}
+        >
           <Ionicons name="arrow-back" size={24} color="#ffffff" />
         </Pressable>
         <Text
@@ -149,7 +160,7 @@ export default function BookPoliceClearanceApp() {
           </Text>
           <TouchableOpacity
             className="border border-gray-200 rounded-xl p-4 flex-row justify-between items-center"
-            style={{ backgroundColor: "#DEEBF8" }} // ✅ Applied color
+            style={{ backgroundColor: "#DEEBF8" }}
             onPress={() => setShowPurposeDropdown(true)}
             activeOpacity={0.7}
           >
@@ -167,7 +178,7 @@ export default function BookPoliceClearanceApp() {
           </Text>
           <TouchableOpacity
             className="border border-gray-200 rounded-xl p-4 flex-row justify-between items-center"
-            style={{ backgroundColor: "#DEEBF8" }} // ✅ Applied color
+            style={{ backgroundColor: "#DEEBF8" }}
             onPress={() => setShowStationDropdown(true)}
             activeOpacity={0.7}
           >
@@ -314,7 +325,7 @@ export default function BookPoliceClearanceApp() {
         </TouchableOpacity>
         <TouchableOpacity className="items-center">
           <FileText size={24} color="#312E81" />
-          <Text className="text-xs text-indigo-900 mt-1">Barber</Text>
+          <Text className="text-xs text-indigo-900 mt-1">Clearance</Text>
         </TouchableOpacity>
         <TouchableOpacity className="items-center">
           <User size={24} color="#9CA3AF" />
@@ -323,12 +334,7 @@ export default function BookPoliceClearanceApp() {
       </View>
 
       {/* Purpose Dropdown */}
-      <Modal
-        visible={showPurposeDropdown}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowPurposeDropdown(false)}
-      >
+      <Modal visible={showPurposeDropdown} transparent animationType="fade">
         <Pressable
           className="flex-1 bg-black/50 justify-center items-center"
           onPress={() => setShowPurposeDropdown(false)}
@@ -353,12 +359,7 @@ export default function BookPoliceClearanceApp() {
       </Modal>
 
       {/* Station Dropdown */}
-      <Modal
-        visible={showStationDropdown}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowStationDropdown(false)}
-      >
+      <Modal visible={showStationDropdown} transparent animationType="fade">
         <Pressable
           className="flex-1 bg-black/50 justify-center items-center"
           onPress={() => setShowStationDropdown(false)}
@@ -391,7 +392,12 @@ export default function BookPoliceClearanceApp() {
       >
         <View className="flex-1 justify-end bg-black/40">
           <View className="bg-white rounded-t-3xl p-6 items-center">
-            <Text className="text-lg font-semibold mb-3">Confirmation</Text>
+            <View className="items-center pb-2 mb-10">
+              <View className="w-40 h-2 bg-gray-200 rounded-full" />
+            </View>
+            <Text className="text-lg font-semibold mb-3">
+              Confirm Appointment
+            </Text>
             <Text className="text-gray-700 text-center mb-1">
               {`10/${selectedDate}/2025 ${
                 dates.find((d) => d.day === selectedDate)?.label
@@ -403,12 +409,44 @@ export default function BookPoliceClearanceApp() {
             <Text className="text-gray-700 text-center mb-6">{station}</Text>
 
             <TouchableOpacity
-              className="bg-indigo-600 px-8 py-3 rounded-xl"
+              className="bg-indigo-600 px-8 py-3 rounded-xl mb-10"
               onPress={handleConfirm}
               activeOpacity={0.8}
             >
               <Text className="text-white font-semibold text-base">
-                Confirm and proceed
+                Confirm and Proceed
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal
+        visible={showSuccess}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowSuccess(false)}
+      >
+        <View className="flex-1 justify-end bg-black/40">
+          <View className="bg-white rounded-t-3xl p-6 items-center">
+            <View className="items-center pb-2 mb-10">
+              <View className="w-40 h-2 bg-gray-200 rounded-full" />
+            </View>
+            <Text className="text-lg font-semibold mb-3">
+              Appointment Saved
+            </Text>
+            <Text className="text-gray-700 text-center mb-6">
+              Your appointment has been successfully booked. Continue to
+              payment.
+            </Text>
+            <TouchableOpacity
+              className="bg-indigo-600 px-8 py-3 mb-10 rounded-xl"
+              onPress={handleGoToPayment}
+              activeOpacity={0.8}
+            >
+              <Text className="text-white font-semibold text-base">
+                Continue to Payment
               </Text>
             </TouchableOpacity>
           </View>

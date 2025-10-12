@@ -11,7 +11,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 
-// Reusable Divider
 interface DividerProps {
   color: string;
 }
@@ -20,7 +19,6 @@ const Divider: React.FC<DividerProps> = ({ color }) => (
   <View style={{ height: 1, backgroundColor: color, marginBottom: 24 }} />
 );
 
-// Reusable Section Title
 interface SectionTitleProps {
   children: React.ReactNode;
   color: string;
@@ -32,7 +30,6 @@ const SectionTitle: React.FC<SectionTitleProps> = ({ children, color }) => (
   </Text>
 );
 
-// Reusable Paragraph Text
 interface ParagraphProps {
   children: React.ReactNode;
   color: string;
@@ -45,7 +42,6 @@ const Paragraph: React.FC<ParagraphProps> = ({ children, color, mb = 4 }) => (
   </Text>
 );
 
-// Reusable Bullet Point
 interface BulletPointProps {
   children: React.ReactNode;
   color: string;
@@ -62,7 +58,6 @@ const BulletPoint: React.FC<BulletPointProps> = ({ children, color }) => (
   </View>
 );
 
-// Reusable Forward Icon Item
 interface ForwardItemProps {
   children: React.ReactNode;
   color: string;
@@ -82,7 +77,6 @@ const ForwardItem: React.FC<ForwardItemProps> = ({ children, color }) => (
   </View>
 );
 
-// Reusable Check Item (for lists with checkmark icons)
 interface CheckItemProps {
   children: React.ReactNode;
   color: string;
