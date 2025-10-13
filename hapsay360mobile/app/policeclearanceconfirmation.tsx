@@ -73,7 +73,7 @@ export default function PoliceClearanceConfirmation() {
 
         {/* Appointment Details */}
         <View className="space-y-6 mb-14">
-          <View className="flex-row items-center">
+          <View className="flex-row items-center mb-2">
             <Clock color="#4b5563" size={20} />
             <Text className="text-sm text-gray-700 flex-1 ml-4">
               Estimated time
@@ -83,7 +83,7 @@ export default function PoliceClearanceConfirmation() {
             </Text>
           </View>
 
-          <View className="flex-row items-center">
+          <View className="flex-row items-center mb-2">
             <MapPin color="#4b5563" size={20} />
             <Text className="text-sm text-gray-700 flex-1 ml-4">
               Police station
