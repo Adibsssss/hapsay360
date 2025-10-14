@@ -73,14 +73,13 @@ export default function HomeScreen() {
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={{
-            height: 220, // shorter header so it doesn't leave big space
+            height: 220,
             alignItems: "center",
             justifyContent: "center",
             width: "100%",
           }}
         >
           <StatusBar barStyle="light-content" />
-          {/* Logo + Title */}
           <View className="items-center">
             <Image
               source={require("../../assets/images/icon.png")}
@@ -97,7 +96,7 @@ export default function HomeScreen() {
         <View
           className="absolute left-0 right-0 px-6 z-20"
           style={{
-            bottom: -25, // overlaps slightly below gradient
+            bottom: -25,
           }}
         >
           <View className="bg-white rounded-xl flex-row items-center px-4 py-3.5 shadow-lg">
@@ -120,7 +119,7 @@ export default function HomeScreen() {
         style={{ backgroundColor: isDark ? "#1a1f4d" : "#ffffff" }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingTop: 60, // enough to clear the search bar overlap
+          paddingTop: 60,
           paddingHorizontal: 16,
           paddingBottom: 0,
         }}

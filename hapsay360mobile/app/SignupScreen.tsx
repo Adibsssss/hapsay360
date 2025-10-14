@@ -10,18 +10,25 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
-import { Link } from "expo-router";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function SignupScreen() {
+  const router = useRouter();
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSignup = () => {
-    console.log("Signup pressed");
-    // Add your Signup logic here
+    // Here you can call your backend API to create an account
     console.log({ firstName, lastName, email, password });
+
+    // After signup, navigate to another page (e.g., Welcome page)
+    router.push("/(tabs)");
   };
 
   return (
@@ -35,16 +42,36 @@ export default function SignupScreen() {
         keyboardShouldPersistTaps="handled"
         className="flex-1"
       >
-        {/* Header Section */}
-        <View className="bg-[#1a1a4a] items-center justify-center pt-20 pb-20">
-          <Image
-            source={require("../assets/images/icon.png")}
-            style={{ width: 80, height: 80 }}
-            contentFit="contain"
-          />
-          <Text className="text-white text-2xl font-bold tracking-wider">
-            HAPSAY360
-          </Text>
+        <View style={{ height: 300, width: "100%" }}>
+          <LinearGradient
+            colors={["#3b3b8a", "#141545"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+            }}
+          >
+            <StatusBar style="light" />
+            <Image
+              source={require("../assets/images/icon.png")}
+              style={{ width: 100, height: 100 }}
+              resizeMode="contain"
+            />
+            <Text
+              style={{
+                color: "white",
+                fontSize: 22,
+                fontWeight: "bold",
+                letterSpacing: 2,
+                marginTop: 10,
+              }}
+            >
+              HAPSAY360
+            </Text>
+          </LinearGradient>
         </View>
 
         {/* Form Section */}
@@ -81,17 +108,30 @@ export default function SignupScreen() {
             autoCapitalize="words"
           />
 
-          {/* Password Input */}
-          <TextInput
-            className="bg-gray-100 rounded-lg px-4 py-4 mb-6 text-gray-700 text-base"
-            placeholder="Password"
-            placeholderTextColor="#9CA3AF"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoCapitalize="none"
-            autoComplete="password"
-          />
+          {/* Password Input with Show/Hide */}
+          <View className="mb-6 relative">
+            <TextInput
+              className="bg-gray-100 rounded-lg px-4 py-4 text-gray-700 text-base pr-12"
+              placeholder="Password"
+              placeholderTextColor="#9CA3AF"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoComplete="password"
+            />
+            <TouchableOpacity
+              className="absolute right-4 top-1/2 -translate-y-1/2"
+              onPress={() => setShowPassword(!showPassword)}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={showPassword ? "eye" : "eye-off"}
+                size={24}
+                color="#9CA3AF"
+              />
+            </TouchableOpacity>
+          </View>
 
           {/* Signup Button */}
           <TouchableOpacity
@@ -107,13 +147,11 @@ export default function SignupScreen() {
             <Text className="text-gray-600 text-sm">
               Already have an account?{" "}
             </Text>
-            <Link href="/login" asChild>
-              <TouchableOpacity>
-                <Text className="text-blue-600 text-sm font-semibold underline">
-                  Log In
-                </Text>
-              </TouchableOpacity>
-            </Link>
+            <TouchableOpacity onPress={() => router.push("/")}>
+              <Text className="text-blue-600 text-sm font-semibold underline">
+                Log In
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>

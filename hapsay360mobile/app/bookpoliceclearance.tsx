@@ -8,11 +8,11 @@ import {
   Pressable,
   StatusBar,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, usePathname } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { ChevronDown, Home, Search, FileText, User } from "lucide-react-native";
+import { ChevronDown } from "lucide-react-native";
+import BottomNav from "./components/bottomnav";
+import GradientHeader from "./components/GradientHeader";
 
 const purposes = [
   "Employment",
@@ -55,6 +55,8 @@ const timeSlots = {
 
 export default function BookingPoliceClearance() {
   const router = useRouter();
+  const pathname = usePathname();
+
   const [purpose, setPurpose] = useState("");
   const [station, setStation] = useState("");
   const [selectedDate, setSelectedDate] = useState(today.getDate());
@@ -87,61 +89,47 @@ export default function BookingPoliceClearance() {
     <SafeAreaView className="flex-1 bg-white" edges={["left", "right"]}>
       <StatusBar barStyle="light-content" />
 
-      {/* Header */}
-      <LinearGradient
-        colors={["#3b3b8a", "#141545"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={{
-          paddingHorizontal: 16,
-          paddingTop: 55,
-          paddingBottom: 16,
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-      >
-        <Pressable
-          className="mr-4"
-          style={{ padding: 4 }}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
-        </Pressable>
-        <Text
-          style={{
-            color: "white",
-            fontSize: 20,
-            fontWeight: "600",
-            letterSpacing: 0.5,
-          }}
-        >
-          Book Appointment
-        </Text>
-      </LinearGradient>
+      {/* Reusable Gradient Header */}
+      <GradientHeader title="Book Appointment" onBack={() => router.back()} />
 
-      {/* Steps */}
+      {/* Stepper */}
       <View className="bg-white px-6 py-5">
         <View className="flex-row items-center justify-between">
+          {/* Step 1 */}
           <View className="items-center" style={{ width: 70 }}>
             <View className="w-10 h-10 rounded-full bg-indigo-600 items-center justify-center mb-2">
               <Text className="text-white font-bold">1</Text>
             </View>
-            <Text className="text-xs text-gray-900 font-medium">Book date</Text>
+            <Text className="text-xs text-gray-900 font-semibold">
+              Book date
+            </Text>
           </View>
+
           <View
-            className="flex-1 h-px bg-gray-300 mx-2"
-            style={{ marginTop: -20 }}
+            className="flex-1 h-px mx-2"
+            style={{
+              marginTop: -20,
+              backgroundColor: "#D1D5DB",
+            }}
           />
+
+          {/* Step 2 */}
           <View className="items-center" style={{ width: 70 }}>
             <View className="w-10 h-10 rounded-full bg-gray-300 items-center justify-center mb-2">
               <Text className="text-white font-bold">2</Text>
             </View>
-            <Text className="text-xs text-gray-500">Payment</Text>
+            <Text className="text-xs text-gray-500 ">Payment</Text>
           </View>
+
           <View
-            className="flex-1 h-px bg-gray-300 mx-2"
-            style={{ marginTop: -20 }}
+            className="flex-1 h-px mx-2"
+            style={{
+              marginTop: -20,
+              backgroundColor: "#D1D5DB",
+            }}
           />
+
+          {/* Step 3 */}
           <View className="items-center" style={{ width: 70 }}>
             <View className="w-10 h-10 rounded-full bg-gray-300 items-center justify-center mb-2">
               <Text className="text-white font-bold">3</Text>
@@ -153,9 +141,9 @@ export default function BookingPoliceClearance() {
 
       {/* Booking Form */}
       <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
-        {/* Purpose */}
+        {/* Purpose Dropdown */}
         <View className="mb-4">
-          <Text className="text-gray-700 font-medium text-sm mb-2">
+          <Text className="text-gray-700 font-medium text-sm mb-2 mt-4">
             Purpose
           </Text>
           <TouchableOpacity
@@ -171,7 +159,7 @@ export default function BookingPoliceClearance() {
           </TouchableOpacity>
         </View>
 
-        {/* Police Station */}
+        {/* Police Station Dropdown */}
         <View className="mb-4">
           <Text className="text-gray-700 font-medium text-sm mb-2">
             Select police station
@@ -230,70 +218,117 @@ export default function BookingPoliceClearance() {
           </ScrollView>
         </View>
 
-        {/* Time Slots */}
-        <View className="mb-4">
-          <Text className="text-gray-700 font-medium text-sm mb-2">
-            Morning
-          </Text>
-          <View className="flex-row flex-wrap">
-            {timeSlots.morning.map((time) => (
-              <TouchableOpacity
-                key={time}
-                className={`mr-2 mb-2 px-6 py-3 rounded-xl border ${
-                  selectedTime === time && timeSlot === "A.M"
-                    ? "bg-indigo-600 border-indigo-600"
-                    : "bg-white border-gray-200"
-                }`}
-                onPress={() => {
-                  setSelectedTime(time);
-                  setTimeSlot("A.M");
-                }}
-                activeOpacity={0.7}
-              >
-                <Text
-                  className={
-                    selectedTime === time && timeSlot === "A.M"
-                      ? "text-white font-medium"
-                      : "text-gray-700"
-                  }
-                >
-                  {time}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+        {/* Time Slots with vertical timeline */}
+        <View className="relative mb-10 flex-row">
+          <View
+            style={{
+              position: "absolute",
+              left: 18,
+              top: 0,
+              bottom: 0,
+              width: 3,
+              backgroundColor: "#E5E7EB",
+            }}
+          />
 
-        <View className="mb-6">
-          <Text className="text-gray-700 font-medium text-sm mb-2">
-            Afternoon
-          </Text>
-          <View className="flex-row flex-wrap">
-            {timeSlots.afternoon.map((time) => (
-              <TouchableOpacity
-                key={time}
-                className={`mr-2 mb-2 px-6 py-3 rounded-xl border ${
-                  selectedTime === time && timeSlot === "P.M"
-                    ? "bg-indigo-600 border-indigo-600"
-                    : "bg-white border-gray-200"
-                }`}
-                onPress={() => {
-                  setSelectedTime(time);
-                  setTimeSlot("P.M");
-                }}
-                activeOpacity={0.7}
-              >
-                <Text
-                  className={
-                    selectedTime === time && timeSlot === "P.M"
-                      ? "text-white font-medium"
-                      : "text-gray-700"
-                  }
-                >
-                  {time}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          {/* Circles */}
+          <View>
+            <View
+              style={{
+                position: "absolute",
+                left: 12,
+                top: 8,
+                width: 15,
+                height: 15,
+                borderRadius: 8,
+                backgroundColor: timeSlot === "A.M" ? "#3b82f6" : "#CBD5E1",
+                borderWidth: 2,
+                borderColor: "#3b82f6",
+              }}
+            />
+            <View
+              style={{
+                position: "absolute",
+                left: 12,
+                top: 140,
+                width: 15,
+                height: 15,
+                borderRadius: 8,
+                backgroundColor: timeSlot === "P.M" ? "#f97316" : "#CBD5E1",
+                borderWidth: 2,
+                borderColor: "#f97316",
+              }}
+            />
+          </View>
+
+          <View style={{ marginLeft: 35, flex: 1 }}>
+            {/* Morning */}
+            <View className="mb-6">
+              <Text className="text-gray-700 font-medium text-sm mb-2">
+                Morning
+              </Text>
+              <View className="flex-row flex-wrap">
+                {timeSlots.morning.map((time) => (
+                  <TouchableOpacity
+                    key={time}
+                    className={`mr-2 mb-2 px-6 py-3 rounded-xl border ${
+                      selectedTime === time && timeSlot === "A.M"
+                        ? "bg-indigo-600 border-indigo-600"
+                        : "bg-white border-gray-200"
+                    }`}
+                    onPress={() => {
+                      setSelectedTime(time);
+                      setTimeSlot("A.M");
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      className={
+                        selectedTime === time && timeSlot === "A.M"
+                          ? "text-white font-medium"
+                          : "text-gray-700"
+                      }
+                    >
+                      {time}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Afternoon */}
+            <View>
+              <Text className="text-gray-700 font-medium text-sm mb-2">
+                Afternoon
+              </Text>
+              <View className="flex-row flex-wrap">
+                {timeSlots.afternoon.map((time) => (
+                  <TouchableOpacity
+                    key={time}
+                    className={`mr-2 mb-2 px-6 py-3 rounded-xl border ${
+                      selectedTime === time && timeSlot === "P.M"
+                        ? "bg-indigo-600 border-indigo-600"
+                        : "bg-white border-gray-200"
+                    }`}
+                    onPress={() => {
+                      setSelectedTime(time);
+                      setTimeSlot("P.M");
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      className={
+                        selectedTime === time && timeSlot === "P.M"
+                          ? "text-white font-medium"
+                          : "text-gray-700"
+                      }
+                    >
+                      {time}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
           </View>
         </View>
 
@@ -314,26 +349,9 @@ export default function BookingPoliceClearance() {
       </ScrollView>
 
       {/* Bottom Navigation */}
-      <View className="bg-white border-t border-gray-200 flex-row justify-around py-3">
-        <TouchableOpacity className="items-center">
-          <Home size={24} color="#9CA3AF" />
-          <Text className="text-xs text-gray-500 mt-1">Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className="items-center">
-          <Search size={24} color="#9CA3AF" />
-          <Text className="text-xs text-gray-500 mt-1">Inquire</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className="items-center">
-          <FileText size={24} color="#312E81" />
-          <Text className="text-xs text-indigo-900 mt-1">Clearance</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className="items-center">
-          <User size={24} color="#9CA3AF" />
-          <Text className="text-xs text-gray-500 mt-1">Profile</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNav activeRoute="/(tabs)/clearance" />
 
-      {/* Purpose Dropdown */}
+      {/* Purpose Dropdown Modal */}
       <Modal visible={showPurposeDropdown} transparent animationType="fade">
         <Pressable
           className="flex-1 bg-black/50 justify-center items-center"
@@ -358,7 +376,7 @@ export default function BookingPoliceClearance() {
         </Pressable>
       </Modal>
 
-      {/* Station Dropdown */}
+      {/* Station Dropdown Modal */}
       <Modal visible={showStationDropdown} transparent animationType="fade">
         <Pressable
           className="flex-1 bg-black/50 justify-center items-center"
@@ -392,9 +410,6 @@ export default function BookingPoliceClearance() {
       >
         <View className="flex-1 justify-end bg-black/40">
           <View className="bg-white rounded-t-3xl p-6 items-center">
-            <View className="items-center pb-2 mb-10">
-              <View className="w-40 h-2 bg-gray-200 rounded-full" />
-            </View>
             <Text className="text-lg font-semibold mb-3">
               Confirm Appointment
             </Text>
@@ -407,7 +422,6 @@ export default function BookingPoliceClearance() {
               {`${selectedTime} ${timeSlot}`}
             </Text>
             <Text className="text-gray-700 text-center mb-6">{station}</Text>
-
             <TouchableOpacity
               className="bg-indigo-600 px-8 py-3 rounded-xl mb-10"
               onPress={handleConfirm}
@@ -430,9 +444,6 @@ export default function BookingPoliceClearance() {
       >
         <View className="flex-1 justify-end bg-black/40">
           <View className="bg-white rounded-t-3xl p-6 items-center">
-            <View className="items-center pb-2 mb-10">
-              <View className="w-40 h-2 bg-gray-200 rounded-full" />
-            </View>
             <Text className="text-lg font-semibold mb-3">
               Appointment Saved
             </Text>

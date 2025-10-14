@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
+import GradientHeader from "./components/GradientHeader";
 
 const SectionTitle = ({
   children,
@@ -129,7 +129,7 @@ export default function applicationform() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const bgColor = isDark ? "#1a1f4d" : "#ffffff";
-  const textColor = isDark ? "#ffffff" : "#1f2937";
+  const textColor = isDark ? "#ffffff" : "#141545";
   const dividerColor = isDark ? "#4b5563" : "#d1d5db";
   const buttonColor = isDark ? "#3b82f6" : "#1a1f4d";
 
@@ -243,37 +243,8 @@ export default function applicationform() {
       style={{ flex: 1, backgroundColor: bgColor }}
       edges={["left", "right"]}
     >
-      {/* Header */}
-      <LinearGradient
-        colors={["#3b3b8a", "#141545"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={{
-          paddingHorizontal: 16,
-          paddingTop: 55,
-          paddingBottom: 10,
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-      >
-        <Pressable
-          className="mr-4"
-          onPress={() => router.back()}
-          style={{ padding: 4 }}
-        >
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
-        </Pressable>
-        <Text
-          style={{
-            color: "white",
-            fontSize: 20,
-            fontWeight: "600",
-            letterSpacing: 0.5,
-          }}
-        >
-          Application Form
-        </Text>
-      </LinearGradient>
+      {/* Reusable Gradient Header */}
+      <GradientHeader title="Application Form" onBack={() => router.back()} />
 
       <ScrollView
         style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 24 }}

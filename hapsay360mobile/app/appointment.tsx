@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
+import GradientHeader from "./components/GradientHeader";
 
 interface DividerProps {
   color: string;
@@ -119,37 +119,8 @@ export default function AppointmentTermsScreen() {
       edges={["left", "right"]}
       style={{ backgroundColor: bgColor }}
     >
-      {/* Header */}
-      <LinearGradient
-        colors={["#3b3b8a", "#141545"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={{
-          paddingHorizontal: 16,
-          paddingTop: 55,
-          paddingBottom: 10,
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-      >
-        <Pressable
-          className="mr-4"
-          onPress={() => router.back()}
-          style={{ padding: 4 }}
-        >
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
-        </Pressable>
-        <Text
-          style={{
-            color: "white",
-            fontSize: 20,
-            fontWeight: "600",
-            letterSpacing: 0.5,
-          }}
-        >
-          Book Appointment
-        </Text>
-      </LinearGradient>
+      {/* Reusable Gradient Header */}
+      <GradientHeader title="Book Appointment" onBack={() => router.back()} />
 
       {/* Content */}
       <ScrollView

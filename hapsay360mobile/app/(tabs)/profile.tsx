@@ -1,32 +1,35 @@
 import React from "react";
 import {
+  Alert,
   View,
   Text,
   Image,
   TouchableOpacity,
   ScrollView,
   StatusBar,
-  Pressable,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import GradientHeader from "../components/GradientHeader";
 
 const ChevronRight = () => (
-  <Ionicons name="chevron-forward-outline" size={20} color="#9ca3af" />
+  <Ionicons name="chevron-forward-outline" size={20} color="#6B7280" />
 );
 
 const MenuItem = ({ icon, title, onPress }) => (
   <TouchableOpacity
-    className="flex-row items-center justify-between py-4 px-5 rounded-xl mb-3 mx-3 shadow-sm"
-    style={{ backgroundColor: "#DEEBF8" }}
+    className="flex-row items-center justify-between py-4 px-5 rounded-xl mb-3 mx-3"
+    style={{
+      backgroundColor: "#DEEBF8",
+      borderWidth: 1,
+      borderColor: "#E5E7EB",
+    }}
     onPress={onPress}
     activeOpacity={0.7}
   >
     <View className="flex-row items-center gap-3">
-      <Ionicons name={icon} size={20} color="#374151" />
-      <Text className="text-gray-800 text-base">{title}</Text>
+      <Ionicons name={icon} size={20} color="#1E3A8A" />
+      <Text className="text-gray-900 text-base font-medium">{title}</Text>
     </View>
     <ChevronRight />
   </TouchableOpacity>
@@ -36,45 +39,23 @@ export default function ProfileScreen() {
   const router = useRouter();
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["left", "right"]}>
-      <StatusBar barStyle="dark-content" />
+    <View className="flex-1 bg-white">
+      <StatusBar barStyle="light-content" />
 
-      {/* Gradient Header */}
-      <LinearGradient
-        colors={["#3b3b8a", "#141545"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={{
-          paddingHorizontal: 16,
-          paddingTop: 55,
-          paddingBottom: 10,
-          flexDirection: "row",
-          alignItems: "center",
-        }}
+      {/* Reusable Gradient Header */}
+      <GradientHeader title="Profile" onBack={() => router.back()} />
+
+      <ScrollView
+        className="flex-1 bg-white"
+        contentContainerStyle={{ paddingBottom: 40, paddingTop: 20 }}
+        showsVerticalScrollIndicator={false}
       >
-        <Pressable
-          className="mr-4"
-          onPress={() => router.back()}
-          style={{ padding: 4 }}
-        >
-          <Ionicons name="arrow-back-outline" size={26} color="#fff" />
-        </Pressable>
-        <Text
-          style={{
-            color: "white",
-            fontSize: 20,
-            fontWeight: "600",
-            letterSpacing: 0.5,
-          }}
-        >
-          Profile
-        </Text>
-      </LinearGradient>
-
-      <ScrollView className="flex-1 bg-white">
-        {/* Profile Card */}
-        <View className="items-center pt-10 pb-4">
-          <View className="w-36 h-36 rounded-full overflow-hidden mb-3 shadow-md">
+        {/* Profile Info */}
+        <View className="items-center pt-6 pb-4">
+          <View
+            className="w-36 h-36 rounded-full overflow-hidden mb-3 border-4"
+            style={{ borderColor: "#E0E7FF" }}
+          >
             <Image
               source={{
                 uri: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop",
@@ -85,15 +66,16 @@ export default function ProfileScreen() {
           <Text className="text-gray-900 text-xl font-semibold">
             Sophia Carter
           </Text>
-          <Text className="text-blue-500 text-sm mt-1">Admin</Text>
+          <Text className="text-indigo-700 text-sm mt-1 font-medium">User</Text>
         </View>
 
-        {/* Menu Section */}
-        <View className="mt-4 mx-2 bg-white rounded-2xl overflow-hidden">
+        {/* Section Title */}
+        <View className="mt-2 mx-2 bg-white rounded-2xl overflow-hidden">
           <Text className="text-gray-900 font-semibold text-base px-5 py-3">
             General
           </Text>
 
+          {/* Menu Items */}
           <MenuItem
             icon="person-outline"
             title="My Account"
@@ -112,7 +94,7 @@ export default function ProfileScreen() {
           <MenuItem
             icon="location-outline"
             title="Addresses"
-            onPress={() => router.push("/addresses")}
+            onPress={() => router.push("/address")}
           />
           <MenuItem
             icon="cube-outline"
@@ -124,8 +106,22 @@ export default function ProfileScreen() {
             title="Settings"
             onPress={() => router.push("/settings")}
           />
+          <MenuItem
+            icon="log-out-outline"
+            title="Log Out"
+            onPress={() => {
+              Alert.alert("Log Out", "Are you sure you want to log out?", [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Log Out",
+                  style: "destructive",
+                  onPress: () => router.replace("/logout"),
+                },
+              ]);
+            }}
+          />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

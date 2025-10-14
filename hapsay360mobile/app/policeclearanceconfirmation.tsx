@@ -16,6 +16,7 @@ import {
   CreditCard,
   Check,
 } from "lucide-react-native";
+import GradientHeader from "./components/GradientHeader";
 
 export default function PoliceClearanceConfirmation() {
   const router = useRouter();
@@ -24,37 +25,8 @@ export default function PoliceClearanceConfirmation() {
     <SafeAreaView className="flex-1 bg-white" edges={["left", "right"]}>
       <StatusBar barStyle="light-content" />
 
-      {/* Header */}
-      <LinearGradient
-        colors={["#3b3b8a", "#141545"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={{
-          paddingHorizontal: 16,
-          paddingTop: 55,
-          paddingBottom: 18,
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-      >
-        <Pressable
-          className="mr-4"
-          style={{ padding: 4 }}
-          onPress={() => router.back()}
-        >
-          <ArrowLeft color="#ffffff" size={24} />
-        </Pressable>
-        <Text
-          style={{
-            color: "white",
-            fontSize: 20,
-            fontWeight: "600",
-            letterSpacing: 0.5,
-          }}
-        >
-          Book Appointment
-        </Text>
-      </LinearGradient>
+      {/* Reusable Gradient Header */}
+      <GradientHeader title="Book Appointment" onBack={() => router.back()} />
 
       {/* Main Content */}
       <View className="flex-1 bg-white rounded-t-3xl px-7 py-12">

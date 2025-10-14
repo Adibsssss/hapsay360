@@ -1,123 +1,62 @@
-import { StyleSheet } from "react-native";
 import React from "react";
 import { Tabs } from "expo-router";
 import { useColorScheme } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Home, Search, FileText, User } from "lucide-react-native";
 
 export default function Layout() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
   const tabBarBaseStyle = {
-    backgroundColor: isDark ? "#1a1f4d" : "#F7FAFC",
-    borderTopWidth: 0,
-    elevation: 0,
-    shadowOpacity: 0,
+    backgroundColor: isDark ? "#1a1f4d" : "#ffffff",
+    borderTopWidth: 1,
+    borderTopColor: isDark ? "#2a2f55" : "#e5e7eb",
     height: 85,
     paddingBottom: 20,
     paddingTop: 10,
+    elevation: 0,
+    shadowOpacity: 0,
   };
 
   return (
     <Tabs
       screenOptions={{
+        headerShown: false,
         tabBarStyle: tabBarBaseStyle,
-        tabBarActiveTintColor: isDark ? "#ffffff" : "#1a1f4d",
-        tabBarInactiveTintColor: isDark ? "#8891b8" : "#64748b",
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "500",
-          marginTop: 4,
-        },
+        tabBarActiveTintColor: "#312E81",
+        tabBarInactiveTintColor: "#64748b",
+        tabBarLabelStyle: { fontSize: 12, marginTop: 2, fontWeight: "500" },
+        tabBarIconStyle: { marginBottom: -2 },
       }}
     >
-      {/* Main Tabs */}
       <Tabs.Screen
         name="index"
         options={{
-          headerShown: false,
           tabBarLabel: "Home",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "home" : "home-outline"}
-              size={24}
-              color={color}
-            />
-          ),
+          tabBarIcon: ({ color }) => <Home size={24} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="reports"
+        name="inquire"
         options={{
-          headerShown: false,
-          tabBarLabel: "Reports",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "bar-chart" : "bar-chart-outline"}
-              size={24}
-              color={color}
-            />
-          ),
+          tabBarLabel: "Inquire",
+          tabBarIcon: ({ color }) => <Search size={24} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="blotter"
+        name="clearance"
         options={{
-          headerShown: false,
-          tabBarLabel: "Blotter",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "document-text" : "document-text-outline"}
-              size={24}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="appointment"
-        options={{
-          headerShown: false,
-          tabBarLabel: "Appointment",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "calendar" : "calendar-outline"}
-              size={24}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="nearesthelp"
-        options={{
-          headerShown: false,
-          tabBarLabel: "Nearest Help",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "navigate" : "navigate-outline"}
-              size={24}
-              color={color}
-            />
-          ),
+          tabBarLabel: "Clearance",
+          tabBarIcon: ({ color }) => <FileText size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          headerShown: false,
           tabBarLabel: "Profile",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "person" : "person-outline"}
-              size={24}
-              color={color}
-            />
-          ),
+          tabBarIcon: ({ color }) => <User size={24} color={color} />,
         }}
       />
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({});

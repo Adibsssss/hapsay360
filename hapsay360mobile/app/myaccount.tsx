@@ -14,7 +14,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Home, FileText, User } from "lucide-react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
+import GradientHeader from "./components/GradientHeader";
+import BottomNav from "./components/bottomnav";
 
 export default function MyAccount() {
   const router = useRouter();
@@ -44,37 +45,8 @@ export default function MyAccount() {
     >
       <StatusBar barStyle="light-content" />
 
-      {/* Header */}
-      <LinearGradient
-        colors={["#3b3b8a", "#141545"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={{
-          paddingHorizontal: 16,
-          paddingTop: 55,
-          paddingBottom: 10,
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-      >
-        <Pressable
-          className="mr-4"
-          onPress={() => router.back()}
-          style={{ padding: 4 }}
-        >
-          <Ionicons name="arrow-back" size={26} color="#ffffff" />
-        </Pressable>
-        <Text
-          style={{
-            color: "white",
-            fontSize: 20,
-            fontWeight: "600",
-            letterSpacing: 0.5,
-          }}
-        >
-          My Account
-        </Text>
-      </LinearGradient>
+      {/* Reusable Gradient Header */}
+      <GradientHeader title="My Account" onBack={() => router.back()} />
 
       <ScrollView className="flex-1 bg-white">
         {/* Profile Section */}
@@ -177,24 +149,7 @@ export default function MyAccount() {
       </ScrollView>
 
       {/* Bottom Navigation */}
-      <View className="bg-white border-t border-gray-200 flex-row justify-around py-6">
-        <TouchableOpacity className="items-center">
-          <Home size={24} color="#9CA3AF" />
-          <Text className="text-xs text-indigo-900 mt-1">Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className="items-center">
-          <FileText size={24} color="#9CA3AF" />
-          <Text className="text-xs text-gray-500 mt-1">Reports</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className="items-center">
-          <FileText size={24} color="#9CA3AF" />
-          <Text className="text-xs text-gray-500 mt-1">Clearance</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className="items-center">
-          <User size={24} color="#312E81" />
-          <Text className="text-xs text-gray-500 mt-1">Profile</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNav activeRoute="/(tabs)/clearance" />
     </SafeAreaView>
   );
 }
