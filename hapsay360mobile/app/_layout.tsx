@@ -21,6 +21,7 @@ export default function RootLayout() {
       <Stack.Screen name="SignupScreen" options={{ headerShown: false }} />
       <Stack.Screen name="appointment" options={{ headerShown: false }} />
       <Stack.Screen name="applicationform" options={{ headerShown: false }} />
+      <Stack.Screen name="sos" options={{ headerShown: false }} />
       <Stack.Screen name="logout" options={{ headerShown: false }} />
       <Stack.Screen
         name="bookpoliceclearancescreen"

@@ -26,6 +26,7 @@ export default function HomeScreen() {
 
   // Animation for SOS button
   const animation = useRef(new Animated.Value(0)).current;
+  const timeoutRef = useRef(null);
 
   const handlePressIn = () => {
     Animated.timing(animation, {
@@ -43,7 +44,7 @@ export default function HomeScreen() {
     }).start();
   };
 
-  // Progress circle animation (0 to 360 degrees)
+  // Progress circle animation
   const strokeDashoffset = animation.interpolate({
     inputRange: [0, 1],
     outputRange: [440, 0],
@@ -314,7 +315,18 @@ export default function HomeScreen() {
               </Svg>
 
               {/* SOS Button */}
-              <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut}>
+              <Pressable
+                onPressIn={() => {
+                  handlePressIn();
+                  timeoutRef.current = setTimeout(() => {
+                    router.push("../sos");
+                  }, 3000);
+                }}
+                onPressOut={() => {
+                  handlePressOut();
+                  clearTimeout(timeoutRef.current);
+                }}
+              >
                 <View
                   style={{
                     width: 144,
