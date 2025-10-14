@@ -1,13 +1,21 @@
 import React from "react";
 import { View, TouchableOpacity, Text, useColorScheme } from "react-native";
-import { Home, Search, FileText, User } from "lucide-react-native";
+import { Ionicons } from "@expo/vector-icons"; // <-- Use Ionicons
 import { useRouter, usePathname } from "expo-router";
 
 const tabs = [
-  { name: "Home", icon: Home, route: "/(tabs)/index" },
-  { name: "Inquire", icon: Search, route: "/(tabs)/inquire" },
-  { name: "Clearance", icon: FileText, route: "/(tabs)/clearance" },
-  { name: "Profile", icon: User, route: "/(tabs)/profile" },
+  { name: "Home", icon: "home-outline", route: "/(tabs)" },
+  {
+    name: "Nearest Help",
+    icon: "navigate-outline",
+    route: "/(tabs)/nearesthelp",
+  },
+  {
+    name: "Track Activity",
+    icon: "trending-up-outline",
+    route: "/(tabs)/trackactivity",
+  },
+  { name: "Profile", icon: "person-outline", route: "/(tabs)/profile" },
 ];
 
 export default function BottomNav({ activeRoute }) {
@@ -35,8 +43,6 @@ export default function BottomNav({ activeRoute }) {
       }}
     >
       {tabs.map((tab) => {
-        const Icon = tab.icon;
-        // Determine if the tab should be active
         const isActive = activeRoute
           ? activeRoute === tab.route
           : pathname.startsWith(tab.route);
@@ -48,7 +54,11 @@ export default function BottomNav({ activeRoute }) {
             onPress={() => router.replace(tab.route)}
             activeOpacity={0.7}
           >
-            <Icon size={24} color={isActive ? activeColor : inactiveColor} />
+            <Ionicons
+              name={tab.icon}
+              size={24}
+              color={isActive ? activeColor : inactiveColor}
+            />
             <Text
               style={{
                 fontSize: 12,

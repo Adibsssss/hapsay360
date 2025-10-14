@@ -10,6 +10,8 @@ export default function RootLayout() {
       <Stack.Screen name="settings" options={{ headerShown: false }} />
       <Stack.Screen name="myaccount" options={{ headerShown: false }} />
       <Stack.Screen name="changepassword" options={{ headerShown: false }} />
+      <Stack.Screen name="forgotpassword" options={{ headerShown: false }} />
+      <Stack.Screen name="newpassword" options={{ headerShown: false }} />
       <Stack.Screen name="myappoitments" options={{ headerShown: false }} />
       <Stack.Screen name="payment" options={{ headerShown: false }} />
       <Stack.Screen name="addpayment" options={{ headerShown: false }} />

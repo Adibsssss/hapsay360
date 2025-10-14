@@ -7,30 +7,39 @@ import {
   StatusBar,
   useColorScheme,
   TextInput,
-  Pressable,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Home, FileText, User } from "lucide-react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import GradientHeader from "./components/GradientHeader";
-import BottomNav from "./components/bottomnav";
 
-export default function ChangePassword() {
+export default function NewPassword() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const bgColor = isDark ? "#1a1f4d" : "#ffffff";
 
-  // password states
-  const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  // visibility toggles
-  const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const isValidLength = newPassword.length >= 8;
+  const canContinue =
+    isValidLength &&
+    confirmPassword.length >= 8 &&
+    newPassword === confirmPassword;
+
+  const handleContinue = () => {
+    if (!canContinue) return;
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      router.push("/myaccount");
+    }, 1000);
+  };
 
   return (
     <SafeAreaView
@@ -39,37 +48,20 @@ export default function ChangePassword() {
       style={{ backgroundColor: bgColor }}
     >
       <StatusBar barStyle="light-content" />
-
-      {/* Reusable Gradient Header */}
       <GradientHeader title="Change Password" onBack={() => router.back()} />
 
       <ScrollView className="flex-1 bg-white">
         <View className="px-6 py-6 rounded-2xl mt-2">
-          {/* Old Password */}
-          <View className="mb-4">
-            <Text className="text-gray-700 text-sm font-medium mb-1">
-              Old Password
-            </Text>
-            <View
-              className="flex-row items-center border border-gray-300 rounded-lg px-3 py-2"
-              style={{ backgroundColor: "#DEEBF8" }}
-            >
-              <TextInput
-                value={oldPassword}
-                onChangeText={setOldPassword}
-                placeholder="Enter old password"
-                secureTextEntry={!showOld}
-                className="flex-1 text-base text-gray-900"
-              />
-              <TouchableOpacity onPress={() => setShowOld(!showOld)}>
-                <Ionicons
-                  name={showOld ? "eye-off-outline" : "eye-outline"}
-                  size={22}
-                  color="#374151"
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
+          {/* Title */}
+          <Text className="text-4xl font-bold text-gray-900">Forgot your</Text>
+          <Text className="text-4xl font-bold text-gray-900 mb-3">
+            password
+          </Text>
+
+          {/* Subtitle */}
+          <Text className="text-base text-gray-600 mb-8">
+            Enter a new password and try not to forget it.
+          </Text>
 
           {/* New Password */}
           <View className="mb-4">
@@ -95,6 +87,17 @@ export default function ChangePassword() {
                 />
               </TouchableOpacity>
             </View>
+
+            {/* Always visible instruction */}
+            <Text
+              className={`text-sm mt-2 ${
+                isValidLength ? "text-green-600" : "text-gray-500"
+              }`}
+            >
+              {isValidLength
+                ? "✅ Good! Your password meets the requirement."
+                : "Your password must be at least 8 characters long."}
+            </Text>
           </View>
 
           {/* Confirm Password */}
@@ -123,19 +126,26 @@ export default function ChangePassword() {
             </View>
           </View>
 
-          {/* Save Button */}
+          {/* Continue Button */}
           <TouchableOpacity
-            onPress={() => router.push("/myaccount")}
-            style={{ backgroundColor: "#3234AB" }}
-            className="rounded-lg py-4 items-center"
+            disabled={!canContinue || isLoading}
+            onPress={handleContinue}
+            style={{
+              backgroundColor: canContinue ? "#3234AB" : "#A5A6F6",
+              borderRadius: 9999,
+            }}
+            className="py-4 items-center"
           >
-            <Text className="text-white font-semibold text-base">Save</Text>
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text className="text-white font-semibold text-base">
+                Continue
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <BottomNav activeRoute="/(tabs)/profile" />
     </SafeAreaView>
   );
 }

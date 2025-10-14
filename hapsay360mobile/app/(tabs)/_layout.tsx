@@ -1,7 +1,7 @@
 import React from "react";
 import { Tabs } from "expo-router";
 import { useColorScheme } from "react-native";
-import { Home, Search, FileText, User } from "lucide-react-native";
+import { Ionicons } from "@expo/vector-icons"; // <--- use Ionicons
 
 export default function Layout() {
   const colorScheme = useColorScheme();
@@ -33,28 +33,36 @@ export default function Layout() {
         name="index"
         options={{
           tabBarLabel: "Home",
-          tabBarIcon: ({ color }) => <Home size={24} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="home-outline" size={24} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
-        name="inquire"
+        name="nearesthelp"
         options={{
-          tabBarLabel: "Inquire",
-          tabBarIcon: ({ color }) => <Search size={24} color={color} />,
+          tabBarLabel: "Nearest Help",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="navigate-outline" size={24} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
-        name="clearance"
+        name="trackactivity"
         options={{
-          tabBarLabel: "Clearance",
-          tabBarIcon: ({ color }) => <FileText size={24} color={color} />,
+          tabBarLabel: "Track Activity",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="trending-up-outline" size={24} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           tabBarLabel: "Profile",
-          tabBarIcon: ({ color }) => <User size={24} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="person-outline" size={24} color={color} />
+          ),
         }}
       />
     </Tabs>

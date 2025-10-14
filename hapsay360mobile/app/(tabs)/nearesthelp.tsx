@@ -1,4 +1,3 @@
-// NearestHelpScreen.js
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -33,7 +32,7 @@ import {
   Mail,
   User,
 } from "lucide-react-native";
-import GradientHeader from "./components/GradientHeader";
+import GradientHeader from "../components/GradientHeader";
 
 const { height } = Dimensions.get("window");
 
@@ -516,10 +515,8 @@ const NearestHelpScreen = () => {
 
                 {/* Vertical Scroll */}
                 <ScrollView
-                  nestedScrollEnabled={true} // Enable nested scroll for Android
-                  keyboardShouldPersistTaps="handled"
+                  nestedScrollEnabled={true}
                   contentContainerStyle={{ paddingBottom: 20 }}
-                  overScrollMode="never"
                 >
                   {/* Top Info Row */}
                   <View className="flex-row items-center px-6 mb-4">
@@ -557,6 +554,7 @@ const NearestHelpScreen = () => {
 
                   {/* Contact Information */}
                   <View className="mx-6 my-4 p-4 border border-black rounded-xl bg-white flex-row">
+                    {/* Vertical line */}
                     <View className="mr-4 items-center justify-between">
                       <View className="w-1 bg-gray-100 flex-1 relative">
                         <View className="absolute top-2 -translate-y-1/2 w-6 h-6 bg-gray-100 rounded-full left-1/2 -translate-x-1/2" />
@@ -564,6 +562,7 @@ const NearestHelpScreen = () => {
                       </View>
                     </View>
 
+                    {/* Details */}
                     <View className="flex-1">
                       <Text className="text-sm text-black mb-2 font-semibold">
                         {nearestHelp.name}
@@ -596,7 +595,6 @@ const NearestHelpScreen = () => {
                       {distance} km
                     </Text>
                   </View>
-
                   {/* Services Offered */}
                   <View className="px-6 py-4">
                     <Text className="text-sm font-semibold text-black mb-3">
@@ -607,9 +605,12 @@ const NearestHelpScreen = () => {
                       horizontal
                       showsHorizontalScrollIndicator={false}
                       decelerationRate="fast"
-                      contentContainerStyle={{ paddingHorizontal: 16 }}
-                      overScrollMode="never"
-                      keyboardShouldPersistTaps="handled"
+                      snapToAlignment="start"
+                      snapToInterval={104}
+                      contentContainerStyle={{
+                        paddingHorizontal: 16,
+                        flexGrow: 0,
+                      }}
                     >
                       {[
                         { icon: FileText, label: "Report Filing" },

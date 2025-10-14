@@ -27,7 +27,7 @@ const GradientHeader = ({ title = "Header", onBack }) => {
           {/* Title */}
           <Text
             className="text-white text-2xl font-bold tracking-[0.5px] absolute left-0 right-0 text-center"
-            pointerEvents="none" // allow touches to pass through
+            pointerEvents="none"
           >
             {title}
           </Text>

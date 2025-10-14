@@ -1,10 +1,10 @@
 import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 
-export default function blotter() {
+export default function trackactivity() {
   return (
     <View>
-      <Text>blotter</Text>
+      <Text>trackactivity</Text>
     </View>
   );
 }
