@@ -1,7 +1,7 @@
 import React from "react";
 import { Tabs } from "expo-router";
 import { useColorScheme } from "react-native";
-import { Ionicons } from "@expo/vector-icons"; // <--- use Ionicons
+import { Ionicons } from "@expo/vector-icons";
 
 export default function Layout() {
   const colorScheme = useColorScheme();
@@ -42,6 +42,7 @@ export default function Layout() {
         name="nearesthelp"
         options={{
           tabBarLabel: "Nearest Help",
+          tabBarStyle: { display: "none" },
           tabBarIcon: ({ color }) => (
             <Ionicons name="navigate-outline" size={24} color={color} />
           ),

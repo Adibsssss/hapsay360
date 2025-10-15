@@ -16,6 +16,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
+import { useRouter } from "expo-router";
+
 import * as Location from "expo-location";
 import {
   Clock,
@@ -37,6 +39,7 @@ import GradientHeader from "../components/GradientHeader";
 const { height } = Dimensions.get("window");
 
 const NearestHelpScreen = () => {
+  const router = useRouter();
   const [currentLocation, setCurrentLocation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [region, setRegion] = useState(null);
@@ -48,7 +51,6 @@ const NearestHelpScreen = () => {
   const isDark = colorScheme === "dark";
   const bgColor = isDark ? "#1a1f4d" : "#ffffff";
 
-  // Real Police Stations in Cagayan de Oro City
   const policeStations = [
     {
       id: 1,
@@ -334,7 +336,11 @@ const NearestHelpScreen = () => {
       style={{ backgroundColor: bgColor }}
     >
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-      <GradientHeader title="Nearest Help" onBack={() => console.log("Back")} />
+      <GradientHeader
+        title="Nearest Help"
+        onBack={() => router.push("/(tabs)")}
+      />
+
       <ScrollView className="flex-1">
         {/* Map Section */}
         <View className="h-96">
@@ -494,29 +500,35 @@ const NearestHelpScreen = () => {
         onRequestClose={closeDetailsModal}
       >
         <TouchableWithoutFeedback onPress={closeDetailsModal}>
-          <View className="flex-1 bg-black/50">
+          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }}>
             <TouchableWithoutFeedback>
               <Animated.View
                 style={{
                   transform: [{ translateY: slideAnim }],
-                  height: height - 120,
+                  backgroundColor: "white",
+                  borderTopLeftRadius: 24,
+                  borderTopRightRadius: 24,
+                  maxHeight: height * 0.9,
+                  overflow: "hidden",
                 }}
-                className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl"
+                className="absolute bottom-0 left-0 right-0"
               >
                 {/* Modal Header */}
-                <View className="flex-row items-center justify-between px-6 pt-6 pb-20">
+                <View className="flex-row items-center justify-between px-6 pt-6 pb-2">
                   <TouchableOpacity
                     onPress={closeDetailsModal}
-                    className="absolute left-6 top-6 w-10 h-10 items-center justify-center"
+                    className="w-10 h-10 items-center justify-center"
                   >
                     <X size={24} color="#000" />
                   </TouchableOpacity>
                 </View>
 
-                {/* Vertical Scroll */}
+                {/* Scrollable Content */}
                 <ScrollView
+                  style={{ flex: 1 }}
+                  contentContainerStyle={{ paddingBottom: 40 }}
+                  showsVerticalScrollIndicator={true}
                   nestedScrollEnabled={true}
-                  contentContainerStyle={{ paddingBottom: 20 }}
                 >
                   {/* Top Info Row */}
                   <View className="flex-row items-center px-6 mb-4">
@@ -526,7 +538,7 @@ const NearestHelpScreen = () => {
                       </View>
                     </View>
                     <View className="flex-1">
-                      <Text className="text-sg font-bold text-gray-900 mb-1">
+                      <Text className="text-lg font-bold text-gray-900 mb-1">
                         {nearestHelp.name}
                       </Text>
                       <Text className="text-sm font-semibold text-gray-700">
@@ -554,34 +566,41 @@ const NearestHelpScreen = () => {
 
                   {/* Contact Information */}
                   <View className="mx-6 my-4 p-4 border border-black rounded-xl bg-white flex-row">
-                    {/* Vertical line */}
-                    <View className="mr-4 items-center justify-between">
-                      <View className="w-1 bg-gray-100 flex-1 relative">
-                        <View className="absolute top-2 -translate-y-1/2 w-6 h-6 bg-gray-100 rounded-full left-1/2 -translate-x-1/2" />
-                        <View className="absolute bottom-2 translate-y-1/2 w-6 h-6 bg-gray-100 rounded-full left-1/2 -translate-x-1/2" />
-                      </View>
+                    <View className="items-center mr-6">
+                      <View className="w-0.5 flex-1 bg-gray-300 absolute top-0 bottom-0" />
+                      <View className="w-5 h-5 rounded-full bg-gray-100 border-2 border-white z-10" />
+                      <View className="flex-1" />
+                      <View className="w-5 h-5 rounded-full bg-gray-100 border-2 border-white z-10" />
                     </View>
 
-                    {/* Details */}
                     <View className="flex-1">
-                      <Text className="text-sm text-black mb-2 font-semibold">
-                        {nearestHelp.name}
-                      </Text>
-                      <Text className="text-sm text-black mb-2 font-semibold">
-                        Contact Information
-                      </Text>
-                      <View className="mt-2 space-y-1">
-                        <Text className="text-sm font-bold text-black">
+                      <View className="mb-6">
+                        <Text className="text-base font-semibold text-black mb-1">
+                          Police Station
+                        </Text>
+                        <Text className="text-sm font-medium text-black">
+                          {nearestHelp.name}
+                        </Text>
+                        <Text className="text-sm text-gray-700">
+                          {nearestHelp.address}
+                        </Text>
+                        <Text className="text-sm text-gray-700 mt-1">
                           Landline: {nearestHelp.landline}
                         </Text>
-                        <Text className="text-sm font-bold text-black">
+                        <Text className="text-sm text-gray-700">
                           Mobile: {nearestHelp.mobile}
                         </Text>
-                        <Text className="text-sm font-bold text-black">
+                        <Text className="text-sm text-gray-700">
                           Email: {nearestHelp.email}
                         </Text>
-                        <Text className="text-lg text-black mt-4 font-bold">
-                          Officer-in-Charge: {nearestHelp.officer}
+                      </View>
+
+                      <View>
+                        <Text className="text-base font-semibold text-black mb-1">
+                          Officer in Charge
+                        </Text>
+                        <Text className="text-sm text-gray-700">
+                          {nearestHelp.officer}
                         </Text>
                       </View>
                     </View>
@@ -595,7 +614,8 @@ const NearestHelpScreen = () => {
                       {distance} km
                     </Text>
                   </View>
-                  {/* Services Offered */}
+
+                  {/* Services Offered — Horizontal Scroll */}
                   <View className="px-6 py-4">
                     <Text className="text-sm font-semibold text-black mb-3">
                       Services Offered
@@ -603,13 +623,11 @@ const NearestHelpScreen = () => {
 
                     <ScrollView
                       horizontal
+                      nestedScrollEnabled={true}
                       showsHorizontalScrollIndicator={false}
-                      decelerationRate="fast"
-                      snapToAlignment="start"
-                      snapToInterval={104}
                       contentContainerStyle={{
                         paddingHorizontal: 16,
-                        flexGrow: 0,
+                        gap: 12,
                       }}
                     >
                       {[
@@ -626,7 +644,7 @@ const NearestHelpScreen = () => {
                         return (
                           <View
                             key={index}
-                            className="w-24 items-center bg-gray-100 rounded-2xl p-3 mr-4"
+                            className="w-24 items-center bg-gray-100 rounded-2xl p-3"
                           >
                             <IconComponent size={28} color="#000" />
                             <Text

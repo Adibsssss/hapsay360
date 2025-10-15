@@ -20,6 +20,13 @@ export default function RootLayout() {
       <Stack.Screen name="trackrequests" options={{ headerShown: false }} />
       <Stack.Screen name="SignupScreen" options={{ headerShown: false }} />
       <Stack.Screen name="appointment" options={{ headerShown: false }} />
+      <Stack.Screen name="incidentdetails" options={{ headerShown: false }} />
+      <Stack.Screen name="incidentreport" options={{ headerShown: false }} />
+      <Stack.Screen name="submitincident" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="blotterconfirmation"
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="applicationform" options={{ headerShown: false }} />
       <Stack.Screen name="sos" options={{ headerShown: false }} />
       <Stack.Screen name="logout" options={{ headerShown: false }} />

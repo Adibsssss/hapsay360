@@ -7,18 +7,31 @@ import {
   Modal,
   Pressable,
   StatusBar,
+  useColorScheme,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Home, FileText, User } from "lucide-react-native";
 import GradientHeader from "./components/GradientHeader";
-import BottomNav from "./components/bottomnav";
 
-export default function MyAppointments() {
+export default function TrackActivity() {
   const router = useRouter();
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const dividerColor = isDark ? "#4b5563" : "#d1d5db";
+
+  const Divider = ({ color }: { color: string }) => (
+    <View
+      style={{
+        height: 1,
+        backgroundColor: color,
+        marginVertical: 2,
+      }}
+    />
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["left", "right"]}>
@@ -29,13 +42,16 @@ export default function MyAppointments() {
 
       {/* Main Content */}
       <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
-        {/* ✅ Police Clearance Expandable Card */}
+        {/* Police Clearance Expandable Card */}
         <View className="border border-gray-200 rounded-2xl overflow-hidden mt-4 mb-8 shadow-sm bg-white">
           <View className="p-5">
             <Text className="text-lg font-bold text-gray-900 mb-3">
               Police Clearance
             </Text>
-            <Text className="text-gray-900 font-medium text-base mb-1">
+
+            <Divider color={dividerColor} />
+
+            <Text className="text-gray-900 font-medium text-base mb-1 mt-3">
               10/15/2025 Thursday
             </Text>
             <Text className="text-gray-600 text-sm mb-4">
@@ -117,9 +133,6 @@ export default function MyAppointments() {
           )}
         </View>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <BottomNav activeRoute="/(tabs)/profile" />
 
       {/* Change Card Modal */}
       <Modal

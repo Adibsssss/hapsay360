@@ -155,7 +155,7 @@ export default function HomeScreen() {
           <Pressable
             className="rounded-2xl w-[48%] p-6 items-center"
             style={{ backgroundColor: isDark ? "#2a3166" : "#DEEBF8" }}
-            onPress={() => router.push("/reports")}
+            onPress={() => router.push("/trackactivity")}
           >
             <View
               className="w-16 h-16 rounded-2xl items-center justify-center mb-3 shadow-sm"
@@ -178,16 +178,17 @@ export default function HomeScreen() {
 
         <View className="flex-row justify-between mb-6">
           {/* File Blotter */}
-          <View
+          <Pressable
             className="rounded-2xl w-[48%] p-6 items-center"
             style={{ backgroundColor: isDark ? "#2a3166" : "#DEEBF8" }}
+            onPress={() => router.push("/reporterinfo")}
           >
             <View
               className="w-16 h-16 rounded-2xl items-center justify-center mb-3 shadow-sm"
               style={{ backgroundColor: isDark ? "#3a4180" : "#ffffff" }}
             >
               <Ionicons
-                name="document-text-outline"
+                name="file-tray-full-outline"
                 size={32}
                 color={isDark ? "#ffffff" : "#1a1f4d"}
               />
@@ -198,7 +199,7 @@ export default function HomeScreen() {
             >
               File Blotter
             </Text>
-          </View>
+          </Pressable>
 
           {/* Nearest Help */}
           <Pressable

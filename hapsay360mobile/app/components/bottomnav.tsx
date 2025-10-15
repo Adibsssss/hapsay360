@@ -1,6 +1,6 @@
 import React from "react";
 import { View, TouchableOpacity, Text, useColorScheme } from "react-native";
-import { Ionicons } from "@expo/vector-icons"; // <-- Use Ionicons
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter, usePathname } from "expo-router";
 
 const tabs = [
