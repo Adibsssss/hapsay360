@@ -3,13 +3,14 @@ import {
   View,
   Text,
   TextInput,
-  ScrollView,
   Pressable,
   useColorScheme,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view"; // 👈 added
 import GradientHeader from "./components/GradientHeader";
 
 const SectionTitle = ({
@@ -124,7 +125,7 @@ const Button = ({
   </Pressable>
 );
 
-export default function applicationform() {
+export default function ApplicationForm() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -243,11 +244,13 @@ export default function applicationform() {
       style={{ flex: 1, backgroundColor: bgColor }}
       edges={["left", "right"]}
     >
-      {/* Reusable Gradient Header */}
       <GradientHeader title="Application Form" onBack={() => router.back()} />
 
-      <ScrollView
+      <KeyboardAwareScrollView
         style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 24 }}
+        enableOnAndroid={true}
+        extraScrollHeight={20}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         {/* Section: Personal Info */}
@@ -441,6 +444,7 @@ export default function applicationform() {
 
         {/* Family Background */}
         <SectionTitle color={textColor}>Family Background</SectionTitle>
+
         {/* Father */}
         <InputField
           label="Father's Given Name"
@@ -549,7 +553,7 @@ export default function applicationform() {
           onPress={handleSaveProfile}
           bgColor={buttonColor}
         />
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

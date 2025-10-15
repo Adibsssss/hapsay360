@@ -15,6 +15,7 @@ import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
+import { Shield } from "lucide-react-native";
 import GradientHeader from "./components/GradientHeader";
 
 export default function IncidentDetails() {
@@ -23,10 +24,14 @@ export default function IncidentDetails() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [marker, setMarker] = useState({
+
+  // Separate state for incident location and user location
+  const [incidentLocation, setIncidentLocation] = useState({
     latitude: 8.4542,
     longitude: 124.6319,
   });
+  const [userLocation, setUserLocation] = useState(null);
+
   const [description, setDescription] = useState("");
   const [locationLoaded, setLocationLoaded] = useState(false);
 
@@ -116,16 +121,16 @@ export default function IncidentDetails() {
 
     let nearest = policeStations[0];
     let minDistance = calculateDistance(
-      marker.latitude,
-      marker.longitude,
+      incidentLocation.latitude,
+      incidentLocation.longitude,
       policeStations[0].latitude,
       policeStations[0].longitude
     );
 
     policeStations.forEach((station) => {
       const dist = calculateDistance(
-        marker.latitude,
-        marker.longitude,
+        incidentLocation.latitude,
+        incidentLocation.longitude,
         station.latitude,
         station.longitude
       );
@@ -153,11 +158,15 @@ export default function IncidentDetails() {
           );
           return;
         }
-        const userLocation = await Location.getCurrentPositionAsync({});
-        setMarker({
-          latitude: userLocation.coords.latitude,
-          longitude: userLocation.coords.longitude,
-        });
+        const currentLocation = await Location.getCurrentPositionAsync({});
+        const coords = {
+          latitude: currentLocation.coords.latitude,
+          longitude: currentLocation.coords.longitude,
+        };
+
+        // Set both user location and initial incident location to current position
+        setUserLocation(coords);
+        setIncidentLocation(coords);
         setLocationLoaded(true);
       } catch (error) {
         console.error(error);
@@ -333,6 +342,8 @@ export default function IncidentDetails() {
         date,
         time,
         description,
+        latitude: incidentLocation.latitude,
+        longitude: incidentLocation.longitude,
         stationName: selectedStation.name,
         stationAddress: selectedStation.address,
         stationDistance,
@@ -343,7 +354,7 @@ export default function IncidentDetails() {
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["left", "right"]}>
-      <GradientHeader title="File Incident" onBack={() => router.back()} />
+      <GradientHeader title="File Blotter" onBack={() => router.back()} />
       <ScrollView className="px-4 py-6 bg-white">
         {/* Title */}
         <View className="items-center pt-4 pb-6">
@@ -394,31 +405,53 @@ export default function IncidentDetails() {
           className="border border-gray-300 rounded-lg px-3 py-2 mb-4 bg-white"
         />
 
-        {/* Location Map */}
-        <Text className="mb-2 text-gray-700 font-medium">Location</Text>
+        {/* Location Map - Incident Location */}
+        <Text className="mb-2 text-gray-700 font-medium">
+          Incident Location (Drag to adjust)
+        </Text>
         {locationLoaded ? (
-          <Text className="mb-2 text-gray-600">
-            Lat: {marker.latitude.toFixed(6)}, Lng:{" "}
-            {marker.longitude.toFixed(6)}
+          <Text className="mb-2 text-gray-600 text-sm">
+            Lat: {incidentLocation.latitude.toFixed(6)}, Lng:{" "}
+            {incidentLocation.longitude.toFixed(6)}
           </Text>
         ) : (
           <Text className="mb-2 text-gray-600">
             Loading current location...
           </Text>
         )}
-        <MapView
-          provider={PROVIDER_GOOGLE}
-          style={{ width: "100%", height: 250, marginBottom: 16 }}
-          region={{
-            latitude: marker.latitude,
-            longitude: marker.longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }}
-          onPress={(e) => setMarker(e.nativeEvent.coordinate)}
-        >
-          <Marker coordinate={marker} />
-        </MapView>
+        <View className="h-64 mb-6 rounded-xl overflow-hidden">
+          <MapView
+            provider={PROVIDER_GOOGLE}
+            style={{ flex: 1 }}
+            region={{
+              latitude: incidentLocation.latitude,
+              longitude: incidentLocation.longitude,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }}
+            showsUserLocation
+            showsMyLocationButton
+          >
+            {/* Draggable Incident Location Marker */}
+            <Marker
+              coordinate={incidentLocation}
+              draggable
+              onDragEnd={(e) => {
+                setIncidentLocation(e.nativeEvent.coordinate);
+                // Auto-update nearest station when incident location changes
+                setTimeout(() => findNearestStation(), 100);
+              }}
+              title="Incident Location"
+              description="Drag to adjust location"
+            >
+              <View className="items-center">
+                <View className="bg-red-600 w-12 h-12 rounded-full items-center justify-center shadow-lg border-4 border-white">
+                  <View className="w-3 h-3 bg-white rounded-full" />
+                </View>
+              </View>
+            </Marker>
+          </MapView>
+        </View>
 
         {/* Description */}
         <Text className="mb-2 text-gray-700 font-medium">Description</Text>
@@ -516,18 +549,23 @@ export default function IncidentDetails() {
         )}
 
         {/* Select Police Station */}
-        <Text className="mb-2 text-gray-700 font-medium">
+        <Text className="mb-2 text-gray-700 font-medium text-lg">
           Select Police Station
         </Text>
 
         {selectedStation && (
           <View className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <View className="flex-row items-start mb-3">
+              <View className="w-12 h-12 bg-blue-100 rounded-full items-center justify-center mr-3">
+                <View className="w-10 h-10 bg-blue-900 rounded-full items-center justify-center">
+                  <Shield size={20} color="white" />
+                </View>
+              </View>
               <View className="flex-1">
-                <Text className="text-lg font-bold text-gray-900 mb-1">
+                <Text className="text-base font-bold text-gray-900 mb-1">
                   {selectedStation.name}
                 </Text>
-                <Text className="text-sm text-gray-600 mb-2">
+                <Text className="text-sm text-gray-600">
                   {selectedStation.address}
                 </Text>
               </View>
@@ -552,71 +590,86 @@ export default function IncidentDetails() {
           </View>
         )}
 
-        <MapView
-          provider={PROVIDER_GOOGLE}
-          style={{
-            width: "100%",
-            height: 300,
-            marginBottom: 16,
-            borderRadius: 12,
-          }}
-          region={{
-            latitude: marker.latitude,
-            longitude: marker.longitude,
-            latitudeDelta: 0.15,
-            longitudeDelta: 0.15,
-          }}
-        >
-          {/* User Location Marker */}
-          <Marker
-            coordinate={marker}
-            title="Your Location"
-            description="You are here"
+        {/* Police Station Map */}
+        <View className="h-80 mb-4 rounded-xl overflow-hidden">
+          <MapView
+            provider={PROVIDER_GOOGLE}
+            style={{ flex: 1 }}
+            region={{
+              latitude: incidentLocation.latitude,
+              longitude: incidentLocation.longitude,
+              latitudeDelta: 0.15,
+              longitudeDelta: 0.15,
+            }}
+            showsUserLocation
+            showsMyLocationButton
           >
-            <View className="items-center">
-              <View className="bg-red-600 w-10 h-10 rounded-full items-center justify-center shadow-lg border-3 border-white">
-                <View className="w-2 h-2 bg-white rounded-full" />
-              </View>
-            </View>
-          </Marker>
+            {/* User Location Marker (if available) */}
+            {userLocation && (
+              <Marker
+                coordinate={userLocation}
+                title="Your Current Location"
+                description="You are here"
+              >
+                <View className="items-center">
+                  <View className="bg-blue-500 w-10 h-10 rounded-full items-center justify-center shadow-lg border-4 border-white">
+                    <View className="w-2 h-2 bg-white rounded-full" />
+                  </View>
+                </View>
+              </Marker>
+            )}
 
-          {/* Police Station Markers */}
-          {policeStations.map((station) => (
+            {/* Incident Location Marker */}
             <Marker
-              key={station.id}
-              coordinate={{
-                latitude: station.latitude,
-                longitude: station.longitude,
-              }}
-              title={station.name}
-              description={station.address}
-              onPress={() => {
-                setSelectedStation(station);
-                const dist = calculateDistance(
-                  marker.latitude,
-                  marker.longitude,
-                  station.latitude,
-                  station.longitude
-                );
-                setStationDistance(dist.toFixed(1));
-                const estimatedTime = Math.round((dist / 30) * 60);
-                setStationTime(estimatedTime);
-              }}
+              coordinate={incidentLocation}
+              title="Incident Location"
+              description="Location of the incident"
             >
               <View className="items-center">
-                <View
-                  className={`w-10 h-10 rounded-full items-center justify-center shadow-lg border-3 border-white ${
-                    selectedStation?.id === station.id
-                      ? "bg-blue-600"
-                      : "bg-gray-600"
-                  }`}
-                >
-                  <Text className="text-white text-xs font-bold">🚔</Text>
+                <View className="bg-red-600 w-12 h-12 rounded-full items-center justify-center shadow-lg border-4 border-white">
+                  <View className="w-3 h-3 bg-white rounded-full" />
                 </View>
               </View>
             </Marker>
-          ))}
-        </MapView>
+
+            {/* Police Station Markers */}
+            {policeStations.map((station) => (
+              <Marker
+                key={station.id}
+                coordinate={{
+                  latitude: station.latitude,
+                  longitude: station.longitude,
+                }}
+                title={station.name}
+                description={station.address}
+                onPress={() => {
+                  setSelectedStation(station);
+                  const dist = calculateDistance(
+                    incidentLocation.latitude,
+                    incidentLocation.longitude,
+                    station.latitude,
+                    station.longitude
+                  );
+                  setStationDistance(dist.toFixed(1));
+                  const estimatedTime = Math.round((dist / 30) * 60);
+                  setStationTime(estimatedTime);
+                }}
+              >
+                <View className="items-center">
+                  <View
+                    className={`w-14 h-14 rounded-full items-center justify-center shadow-lg border-4 border-white ${
+                      selectedStation?.id === station.id
+                        ? "bg-blue-900"
+                        : "bg-gray-600"
+                    }`}
+                  >
+                    <Shield size={24} color="white" />
+                  </View>
+                </View>
+              </Marker>
+            ))}
+          </MapView>
+        </View>
 
         <TouchableOpacity
           onPress={findNearestStation}
