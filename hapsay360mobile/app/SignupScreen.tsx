@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
@@ -22,13 +23,51 @@ export default function SignupScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSignup = () => {
-    // Here you can call your backend API to create an account
-    console.log({ firstName, lastName, email, password });
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
-    // After signup, navigate to another page (e.g., Welcome page)
-    router.push("/(tabs)");
+  const handleSignup = async () => {
+    setError(""); // reset error
+
+    // ✅ Check for empty fields
+    if (!firstName || !lastName || !email || !password) {
+      setError("All fields are required.");
+      return;
+    }
+
+    // ✅ Validate email format
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    // ✅ Validate password strength (optional)
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      console.log({ firstName, lastName, email, password });
+
+      // Navigate after successful signup
+      router.push("/(tabs)");
+    } catch (err) {
+      console.error("Signup error:", err);
+      setError("Something went wrong. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,6 +81,7 @@ export default function SignupScreen() {
         keyboardShouldPersistTaps="handled"
         className="flex-1"
       >
+        {/* Header Gradient */}
         <View style={{ height: 300, width: "100%" }}>
           <LinearGradient
             colors={["#3b3b8a", "#141545"]}
@@ -109,7 +149,7 @@ export default function SignupScreen() {
           />
 
           {/* Password Input with Show/Hide */}
-          <View className="mb-6 relative">
+          <View className="mb-4 relative">
             <TextInput
               className="bg-gray-100 rounded-lg px-4 py-4 text-gray-700 text-base pr-12"
               placeholder="Password"
@@ -133,13 +173,25 @@ export default function SignupScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Error Message */}
+          {error ? (
+            <Text className="text-red-500 text-sm mb-4 text-center">
+              {error}
+            </Text>
+          ) : null}
+
           {/* Signup Button */}
           <TouchableOpacity
             onPress={handleSignup}
-            className="bg-[#4338ca] rounded-full py-4 items-center mb-6"
+            disabled={loading}
+            className={`${
+              loading ? "bg-gray-400" : "bg-[#4338ca]"
+            } rounded-full py-4 items-center mb-6`}
             activeOpacity={0.8}
           >
-            <Text className="text-white font-semibold text-base">Sign Up</Text>
+            <Text className="text-white font-semibold text-base">
+              {loading ? "Signing Up..." : "Sign Up"}
+            </Text>
           </TouchableOpacity>
 
           {/* Login Link */}

@@ -7,7 +7,6 @@ import {
   StatusBar,
   useColorScheme,
   TextInput,
-  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Home, FileText, User } from "lucide-react-native";

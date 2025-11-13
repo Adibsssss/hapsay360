@@ -7,34 +7,85 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
-import { Link } from "expo-router";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = () => {
-    console.log("Login pressed");
-    router.replace("./(tabs)");
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
 
-  const handleGoogleLogin = () => {
-    console.log("Google login pressed");
+  const handleLogin = async () => {
+    setError(""); // clear any previous error
+
+    // Basic input validation
+    if (!email || !password) {
+      setError("Please fill in both email and password.");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Simulate async login call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Example: check credentials (replace with API call)
+      if (email === "admin@gmail.com" && password === "admin123") {
+        console.log("Login successful");
+        router.replace("./(tabs)");
+      } else {
+        setError("Invalid email or password.");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Something went wrong. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleFacebookLogin = () => {
-    console.log("Facebook login pressed");
+  const handleGoogleLogin = async () => {
+    try {
+      console.log("Google login pressed");
+      // Add Google login logic here
+    } catch (err) {
+      Alert.alert("Login Error", "Failed to login with Google.");
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    try {
+      console.log("Facebook login pressed");
+      // Add Facebook login logic here
+    } catch (err) {
+      Alert.alert("Login Error", "Failed to login with Facebook.");
+    }
   };
 
   const handleForgotPassword = () => {
-    console.log("Forgot password pressed");
-    router.push("/forgotpassword");
+    try {
+      console.log("Forgot password pressed");
+      router.push("/forgotpassword");
+    } catch (err) {
+      Alert.alert("Error", "Unable to navigate to password reset.");
+    }
   };
 
   return (
@@ -106,6 +157,13 @@ export default function LoginScreen() {
             autoComplete="password"
           />
 
+          {/* Error Message */}
+          {error ? (
+            <Text className="text-red-500 text-sm mb-4 text-center">
+              {error}
+            </Text>
+          ) : null}
+
           {/* Forgot Password */}
           <TouchableOpacity
             onPress={handleForgotPassword}
@@ -118,10 +176,15 @@ export default function LoginScreen() {
           {/* Login Button */}
           <TouchableOpacity
             onPress={handleLogin}
-            className="bg-[#4338ca] rounded-full py-4 items-center mb-6"
+            disabled={loading}
+            className={`${
+              loading ? "bg-gray-400" : "bg-[#4338ca]"
+            } rounded-full py-4 items-center mb-6`}
             activeOpacity={0.8}
           >
-            <Text className="text-white font-semibold text-base">Log in</Text>
+            <Text className="text-white font-semibold text-base">
+              {loading ? "Logging in..." : "Log in"}
+            </Text>
           </TouchableOpacity>
 
           {/* Divider */}
@@ -153,7 +216,7 @@ export default function LoginScreen() {
           {/* Sign Up Link */}
           <View className="flex-row justify-center items-center">
             <Text className="text-gray-600 text-sm">
-              Dont have an account?{" "}
+              Don't have an account?{" "}
             </Text>
             <Link href="/SignupScreen" asChild>
               <TouchableOpacity>

@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import "leaflet/dist/leaflet.css";
 import "../global.css";
 
 export default function RootLayout() {
