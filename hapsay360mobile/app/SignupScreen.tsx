@@ -32,21 +32,18 @@ export default function SignupScreen() {
   };
 
   const handleSignup = async () => {
-    setError(""); // reset error
+    setError("");
 
-    // ✅ Check for empty fields
     if (!firstName || !lastName || !email || !password) {
       setError("All fields are required.");
       return;
     }
 
-    // ✅ Validate email format
     if (!validateEmail(email)) {
       setError("Please enter a valid email address.");
       return;
     }
 
-    // ✅ Validate password strength (optional)
     if (password.length < 6) {
       setError("Password must be at least 6 characters long.");
       return;
@@ -55,12 +52,10 @@ export default function SignupScreen() {
     try {
       setLoading(true);
 
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       console.log({ firstName, lastName, email, password });
 
-      // Navigate after successful signup
       router.push("/(tabs)");
     } catch (err) {
       console.error("Signup error:", err);
