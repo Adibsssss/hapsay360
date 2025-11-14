@@ -27,9 +27,8 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
-    setError(""); // clear any previous error
+    setError("");
 
-    // Basic input validation
     if (!email || !password) {
       setError("Please fill in both email and password.");
       return;
@@ -42,11 +41,9 @@ export default function LoginScreen() {
 
     try {
       setLoading(true);
-
-      // Simulate async login call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Example: check credentials (replace with API call)
+      // Example
       if (email === "admin@gmail.com" && password === "admin123") {
         console.log("Login successful");
         router.replace("./(tabs)");
@@ -64,7 +61,6 @@ export default function LoginScreen() {
   const handleGoogleLogin = async () => {
     try {
       console.log("Google login pressed");
-      // Add Google login logic here
     } catch (err) {
       Alert.alert("Login Error", "Failed to login with Google.");
     }
