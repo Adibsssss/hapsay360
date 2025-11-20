@@ -5,16 +5,11 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  StatusBar,
   useColorScheme,
   TextInput,
-  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Home, Calendar, FileText, Grid, User } from "lucide-react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter, usePathname } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
 import BottomNav from "./components/bottomnav";
 import GradientHeader from "./components/GradientHeader";
 

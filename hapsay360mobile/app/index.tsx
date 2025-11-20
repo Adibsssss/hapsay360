@@ -8,12 +8,14 @@ import {
   Platform,
   ScrollView,
   Alert,
+<<<<<<< HEAD
   ActivityIndicator,
+=======
+>>>>>>> c6534c29bccdb0edf444c79a0d1b2df8e88f374f
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
-import { Link } from "expo-router";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -22,6 +24,7 @@ const API_BASE = "http://192.168.1.6:3000"; // Replace with your PC LAN IP
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+<<<<<<< HEAD
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -58,18 +61,77 @@ export default function LoginScreen() {
     } finally {
       setLoading(false);
     }
+=======
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+>>>>>>> c6534c29bccdb0edf444c79a0d1b2df8e88f374f
   };
 
-  const handleGoogleLogin = () => {
-    console.log("Google login pressed");
+  const handleLogin = async () => {
+    setError("");
+
+    if (!email || !password) {
+      setError("Please fill in both email and password.");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Example
+      if (email === "admin@gmail.com" && password === "admin123") {
+        console.log("Login successful");
+        router.replace("./(tabs)");
+      } else {
+        setError("Invalid email or password.");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Something went wrong. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleFacebookLogin = () => {
-    console.log("Facebook login pressed");
+  const handleGoogleLogin = async () => {
+    try {
+      console.log("Google login pressed");
+    } catch (err) {
+      Alert.alert("Login Error", "Failed to login with Google.");
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    try {
+      console.log("Facebook login pressed");
+      // Add Facebook login logic here
+    } catch (err) {
+      Alert.alert("Login Error", "Failed to login with Facebook.");
+    }
   };
 
   const handleForgotPassword = () => {
+<<<<<<< HEAD
     router.push("/forgotpassword");
+=======
+    try {
+      console.log("Forgot password pressed");
+      router.push("/forgotpassword");
+    } catch (err) {
+      Alert.alert("Error", "Unable to navigate to password reset.");
+    }
+>>>>>>> c6534c29bccdb0edf444c79a0d1b2df8e88f374f
   };
 
   return (
@@ -146,6 +208,13 @@ export default function LoginScreen() {
             editable={!loading}
           />
 
+          {/* Error Message */}
+          {error ? (
+            <Text className="text-red-500 text-sm mb-4 text-center">
+              {error}
+            </Text>
+          ) : null}
+
           {/* Forgot Password */}
           <TouchableOpacity
             onPress={handleForgotPassword}
@@ -161,15 +230,24 @@ export default function LoginScreen() {
           {/* Login Button */}
           <TouchableOpacity
             onPress={handleLogin}
-            className="bg-[#4338ca] rounded-full py-4 items-center mb-6"
+            disabled={loading}
+            className={`${
+              loading ? "bg-gray-400" : "bg-[#4338ca]"
+            } rounded-full py-4 items-center mb-6`}
             activeOpacity={0.8}
             disabled={loading}
           >
+<<<<<<< HEAD
             {loading ? (
               <ActivityIndicator color="white" />
             ) : (
               <Text className="text-white font-semibold text-base">Log In</Text>
             )}
+=======
+            <Text className="text-white font-semibold text-base">
+              {loading ? "Logging in..." : "Log in"}
+            </Text>
+>>>>>>> c6534c29bccdb0edf444c79a0d1b2df8e88f374f
           </TouchableOpacity>
 
           {/* Divider */}

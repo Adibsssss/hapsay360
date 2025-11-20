@@ -8,7 +8,10 @@ import {
   Platform,
   ScrollView,
   Alert,
+<<<<<<< HEAD
   ActivityIndicator,
+=======
+>>>>>>> c6534c29bccdb0edf444c79a0d1b2df8e88f374f
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
@@ -27,6 +30,7 @@ export default function SignupScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [phone_number, setPhoneNumber] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+<<<<<<< HEAD
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -38,10 +42,31 @@ export default function SignupScreen() {
 
     if (password !== confirmPassword) {
       Alert.alert("Error", "Passwords do not match");
+=======
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleSignup = async () => {
+    setError("");
+
+    if (!firstName || !lastName || !email || !password) {
+      setError("All fields are required.");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address.");
+>>>>>>> c6534c29bccdb0edf444c79a0d1b2df8e88f374f
       return;
     }
 
     if (password.length < 6) {
+<<<<<<< HEAD
       Alert.alert("Error", "Password must be at least 6 characters");
       return;
     }
@@ -72,6 +97,23 @@ export default function SignupScreen() {
     } catch (error) {
       Alert.alert("Error", error.message || "Failed to connect to server");
       console.error("Signup error:", error);
+=======
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      console.log({ firstName, lastName, email, password });
+
+      router.push("/(tabs)");
+    } catch (err) {
+      console.error("Signup error:", err);
+      setError("Something went wrong. Please try again later.");
+>>>>>>> c6534c29bccdb0edf444c79a0d1b2df8e88f374f
     } finally {
       setLoading(false);
     }
@@ -88,8 +130,13 @@ export default function SignupScreen() {
         keyboardShouldPersistTaps="handled"
         className="flex-1"
       >
+<<<<<<< HEAD
         {/* Header Section */}
         <View style={{ height: 250, width: "100%" }}>
+=======
+        {/* Header Gradient */}
+        <View style={{ height: 300, width: "100%" }}>
+>>>>>>> c6534c29bccdb0edf444c79a0d1b2df8e88f374f
           <LinearGradient
             colors={["#3b3b8a", "#141545"]}
             start={{ x: 0, y: 0 }}
@@ -197,6 +244,7 @@ export default function SignupScreen() {
             </TouchableOpacity>
           </View>
 
+<<<<<<< HEAD
           {/* Confirm Password Input */}
           <View className="mb-6 relative">
             <TextInput
@@ -222,14 +270,26 @@ export default function SignupScreen() {
               />
             </TouchableOpacity>
           </View>
+=======
+          {/* Error Message */}
+          {error ? (
+            <Text className="text-red-500 text-sm mb-4 text-center">
+              {error}
+            </Text>
+          ) : null}
+>>>>>>> c6534c29bccdb0edf444c79a0d1b2df8e88f374f
 
           {/* Signup Button */}
           <TouchableOpacity
             onPress={handleSignup}
-            className="bg-[#4338ca] rounded-full py-4 items-center mb-6"
+            disabled={loading}
+            className={`${
+              loading ? "bg-gray-400" : "bg-[#4338ca]"
+            } rounded-full py-4 items-center mb-6`}
             activeOpacity={0.8}
             disabled={loading}
           >
+<<<<<<< HEAD
             {loading ? (
               <ActivityIndicator color="white" />
             ) : (
@@ -237,6 +297,11 @@ export default function SignupScreen() {
                 Create Account
               </Text>
             )}
+=======
+            <Text className="text-white font-semibold text-base">
+              {loading ? "Signing Up..." : "Sign Up"}
+            </Text>
+>>>>>>> c6534c29bccdb0edf444c79a0d1b2df8e88f374f
           </TouchableOpacity>
 
           {/* Login Link */}

@@ -17,7 +17,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import { useRouter } from "expo-router";
-
 import * as Location from "expo-location";
 import {
   Clock,
@@ -207,7 +206,6 @@ const NearestHelpScreen = () => {
         station.latitude,
         station.longitude
       );
-
       if (dist < minDistance) {
         minDistance = dist;
         nearest = station;
@@ -322,13 +320,6 @@ const NearestHelpScreen = () => {
 
   const routeCoordinates = [currentLocation, nearestHelp];
 
-  const services = [
-    { icon: FileText, label: "Report Filing", color: "#2563EB" },
-    { icon: Search, label: "Investigation", color: "#2563EB" },
-    { icon: Car, label: "Patrol", color: "#2563EB" },
-    { icon: Users, label: "Community Pr.", color: "#2563EB" },
-  ];
-
   return (
     <SafeAreaView
       className="flex-1"
@@ -343,7 +334,7 @@ const NearestHelpScreen = () => {
 
       <ScrollView className="flex-1">
         {/* Map Section */}
-        <View className="h-96">
+        <View style={{ height: 384 }}>
           <MapView
             provider={PROVIDER_GOOGLE}
             style={{ flex: 1 }}
@@ -391,7 +382,6 @@ const NearestHelpScreen = () => {
                 <Shield size={28} color="white" />
               </View>
             </View>
-
             <View className="flex-1">
               <Text className="text-xl font-bold text-gray-900">
                 {nearestHelp.name}
@@ -403,30 +393,16 @@ const NearestHelpScreen = () => {
                 {distance ? `${distance} km away` : "Calculating..."}
               </Text>
             </View>
-
             <TouchableOpacity
               onPress={handleSendMessage}
-              className="w-12 h-12 items-center justify-center mr-2"
-              style={{
-                backgroundColor: "#ffffff",
-                borderWidth: 1,
-                borderColor: "#808080",
-                borderRadius: 8,
-              }}
+              className="w-12 h-12 items-center justify-center mr-2 bg-white border border-gray-400 rounded-lg"
               activeOpacity={0.6}
             >
               <MessageSquare size={22} color="#000000" />
             </TouchableOpacity>
-
             <TouchableOpacity
               onPress={handleEmergencyCall}
-              className="w-12 h-12 items-center justify-center"
-              style={{
-                backgroundColor: "#ffffff",
-                borderWidth: 1,
-                borderColor: "#808080",
-                borderRadius: 8,
-              }}
+              className="w-12 h-12 items-center justify-center bg-white border border-gray-400 rounded-lg"
               activeOpacity={0.6}
             >
               <Phone size={22} color="#000000" />
@@ -434,7 +410,7 @@ const NearestHelpScreen = () => {
           </View>
 
           {/* Trip Details */}
-          <View className="space-y-3 mb-5">
+          <View className="mb-5">
             <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
               <View className="flex-row items-center">
                 <Clock size={22} color="#6B7280" />
@@ -443,7 +419,7 @@ const NearestHelpScreen = () => {
                 </Text>
               </View>
               <Text className="font-bold text-gray-900 text-base">
-                {estimatedTime ? `${estimatedTime}mins` : "Calculating..."}
+                {estimatedTime ? `${estimatedTime} mins` : "Calculating..."}
               </Text>
             </View>
 
@@ -453,7 +429,7 @@ const NearestHelpScreen = () => {
                 <Text className="ml-3 text-gray-700 text-base">Distance</Text>
               </View>
               <Text className="font-semibold text-gray-900 text-base">
-                {distance ? `${distance}km` : "Calculating..."}
+                {distance ? `${distance} km` : "Calculating..."}
               </Text>
             </View>
           </View>
@@ -492,7 +468,7 @@ const NearestHelpScreen = () => {
         </View>
       </ScrollView>
 
-      {/* More Details */}
+      {/* More Details Modal */}
       <Modal
         visible={showDetailsModal}
         transparent
@@ -500,21 +476,23 @@ const NearestHelpScreen = () => {
         onRequestClose={closeDetailsModal}
       >
         <TouchableWithoutFeedback onPress={closeDetailsModal}>
-          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <View className="flex-1 bg-black/50">
             <TouchableWithoutFeedback>
               <Animated.View
                 style={{
                   transform: [{ translateY: slideAnim }],
+                  height: height - 120,
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
                   backgroundColor: "white",
                   borderTopLeftRadius: 24,
                   borderTopRightRadius: 24,
-                  maxHeight: height * 0.9,
-                  overflow: "hidden",
                 }}
-                className="absolute bottom-0 left-0 right-0"
               >
                 {/* Modal Header */}
-                <View className="flex-row items-center justify-between px-6 pt-6 pb-2">
+                <View className="flex-row items-center justify-between px-6 pt-6 pb-4">
                   <TouchableOpacity
                     onPress={closeDetailsModal}
                     className="w-10 h-10 items-center justify-center"
@@ -523,12 +501,10 @@ const NearestHelpScreen = () => {
                   </TouchableOpacity>
                 </View>
 
-                {/* Scrollable Content */}
+                {/* Vertical Scroll */}
                 <ScrollView
-                  style={{ flex: 1 }}
-                  contentContainerStyle={{ paddingBottom: 40 }}
-                  showsVerticalScrollIndicator={true}
                   nestedScrollEnabled={true}
+                  contentContainerStyle={{ paddingBottom: 20 }}
                 >
                   {/* Top Info Row */}
                   <View className="flex-row items-center px-6 mb-4">
@@ -545,10 +521,16 @@ const NearestHelpScreen = () => {
                         {nearestHelp.address}
                       </Text>
                     </View>
-                    <TouchableOpacity className="p-2 border border-gray-300 rounded-lg mr-2">
+                    <TouchableOpacity
+                      onPress={handleEmergencyCall}
+                      className="p-2 border border-gray-300 rounded-lg mr-2"
+                    >
                       <Phone size={20} color="#000" />
                     </TouchableOpacity>
-                    <TouchableOpacity className="p-2 border border-gray-300 rounded-lg">
+                    <TouchableOpacity
+                      onPress={handleSendMessage}
+                      className="p-2 border border-gray-300 rounded-lg"
+                    >
                       <MessageSquare size={20} color="#000" />
                     </TouchableOpacity>
                   </View>
@@ -566,13 +548,32 @@ const NearestHelpScreen = () => {
 
                   {/* Contact Information */}
                   <View className="mx-6 my-4 p-4 border border-black rounded-xl bg-white flex-row">
-                    <View className="items-center mr-6">
-                      <View className="w-0.5 flex-1 bg-gray-300 absolute top-0 bottom-0" />
-                      <View className="w-5 h-5 rounded-full bg-gray-100 border-2 border-white z-10" />
-                      <View className="flex-1" />
-                      <View className="w-5 h-5 rounded-full bg-gray-100 border-2 border-white z-10" />
+                    {/* Vertical Step Line & Circles */}
+                    <View className="items-center mr-6" style={{ width: 20 }}>
+                      {/* Vertical connecting line */}
+                      <View
+                        style={{
+                          width: 2,
+                          position: "absolute",
+                          top: 10,
+                          bottom: 10,
+                          backgroundColor: "#D1D5DB",
+                        }}
+                      />
+                      {/* Top circle */}
+                      <View
+                        className="rounded-full bg-gray-100 border-2 border-white"
+                        style={{ width: 20, height: 20, zIndex: 10 }}
+                      />
+                      <View style={{ flex: 1 }} />
+                      {/* Bottom circle */}
+                      <View
+                        className="rounded-full bg-gray-100 border-2 border-white"
+                        style={{ width: 20, height: 20, zIndex: 10 }}
+                      />
                     </View>
 
+                    {/* Details */}
                     <View className="flex-1">
                       <View className="mb-6">
                         <Text className="text-base font-semibold text-black mb-1">
@@ -607,7 +608,7 @@ const NearestHelpScreen = () => {
                   </View>
 
                   {/* Distance */}
-                  <View className="flex-row items-center px-6 py-3 border-gray-200">
+                  <View className="flex-row items-center px-6 py-3 border-b border-gray-200">
                     <MapPin size={20} color="#6B7280" />
                     <Text className="ml-3 text-sm text-gray-700">Distance</Text>
                     <Text className="ml-auto font-semibold text-gray-900">
@@ -615,19 +616,19 @@ const NearestHelpScreen = () => {
                     </Text>
                   </View>
 
-                  {/* Services Offered — Horizontal Scroll */}
+                  {/* Services Offered */}
                   <View className="px-6 py-4">
                     <Text className="text-sm font-semibold text-black mb-3">
                       Services Offered
                     </Text>
-
                     <ScrollView
                       horizontal
-                      nestedScrollEnabled={true}
                       showsHorizontalScrollIndicator={false}
+                      decelerationRate="fast"
+                      snapToAlignment="start"
+                      snapToInterval={112}
                       contentContainerStyle={{
-                        paddingHorizontal: 16,
-                        gap: 12,
+                        paddingHorizontal: 0,
                       }}
                     >
                       {[
@@ -644,7 +645,8 @@ const NearestHelpScreen = () => {
                         return (
                           <View
                             key={index}
-                            className="w-24 items-center bg-gray-100 rounded-2xl p-3"
+                            className="items-center bg-gray-100 rounded-2xl p-3 mr-4"
+                            style={{ width: 96 }}
                           >
                             <IconComponent size={28} color="#000" />
                             <Text
