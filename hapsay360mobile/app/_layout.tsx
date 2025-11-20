@@ -12,15 +12,14 @@ export default function RootLayout() {
       <Stack.Screen name="changepassword" options={{ headerShown: false }} />
       <Stack.Screen name="forgotpassword" options={{ headerShown: false }} />
       <Stack.Screen name="newpassword" options={{ headerShown: false }} />
-      <Stack.Screen name="myappoitments" options={{ headerShown: false }} />
+      <Stack.Screen name="myappointments" options={{ headerShown: false }} />
       <Stack.Screen name="payment" options={{ headerShown: false }} />
       <Stack.Screen name="addpayment" options={{ headerShown: false }} />
       <Stack.Screen name="address" options={{ headerShown: false }} />
       <Stack.Screen name="addaddress" options={{ headerShown: false }} />
       <Stack.Screen name="trackrequests" options={{ headerShown: false }} />
       <Stack.Screen name="SignupScreen" options={{ headerShown: false }} />
-      <Stack.Screen name="appointment" options={{ headerShown: false }} />
-      <Stack.Screen name="incidentdetails" options={{ headerShown: false }} />
+      <Stack.Screen name="appointments" options={{ headerShown: false }} />
       <Stack.Screen name="incidentreport" options={{ headerShown: false }} />
       <Stack.Screen name="submitincident" options={{ headerShown: false }} />
       <Stack.Screen
@@ -50,7 +49,6 @@ export default function RootLayout() {
         name="policeclearanceconfirmation"
         options={{ headerShown: false }}
       />
-      <Stack.Screen name="nearesthelp" options={{ headerShown: false }} />
     </Stack>
   );
 }
