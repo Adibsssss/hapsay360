@@ -15,13 +15,6 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: 6,
     },
-    username: {
-      type: String,
-      unique: true,
-      sparse: true,
-      trim: true,
-      default: null,
-    },
     profileImage: {
       type: String,
       default: "",
