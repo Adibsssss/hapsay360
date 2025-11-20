@@ -8,10 +8,7 @@ import {
   Platform,
   ScrollView,
   Alert,
-<<<<<<< HEAD
   ActivityIndicator,
-=======
->>>>>>> c6534c29bccdb0edf444c79a0d1b2df8e88f374f
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
@@ -19,18 +16,20 @@ import { Link, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_BASE = "http://192.168.1.6:3000"; // Replace with your PC LAN IP
+const API_BASE = "http://192.168.1.6:3000"; // <-- your backend URL
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-<<<<<<< HEAD
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleLogin = async () => {
+    setError("");
+
     if (!email || !password) {
-      Alert.alert("Error", "Please fill in all fields");
+      setError("Please fill in both email and password.");
       return;
     }
 
@@ -45,93 +44,33 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (!response.ok) {
-        Alert.alert("Login Failed", data.message || "Invalid credentials");
+        setError(data.message || "Invalid credentials");
         return;
       }
 
-      // Save token to AsyncStorage
+      // Save token & user
       await AsyncStorage.setItem("authToken", data.token);
       await AsyncStorage.setItem("user", JSON.stringify(data.user));
 
-      Alert.alert("Success", "Login successful");
       router.replace("./(tabs)");
-    } catch (error) {
-      Alert.alert("Error", error.message || "Failed to connect to server");
-      console.error("Login error:", error);
-    } finally {
-      setLoading(false);
-    }
-=======
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
->>>>>>> c6534c29bccdb0edf444c79a0d1b2df8e88f374f
-  };
-
-  const handleLogin = async () => {
-    setError("");
-
-    if (!email || !password) {
-      setError("Please fill in both email and password.");
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Example
-      if (email === "admin@gmail.com" && password === "admin123") {
-        console.log("Login successful");
-        router.replace("./(tabs)");
-      } else {
-        setError("Invalid email or password.");
-      }
     } catch (err) {
       console.error("Login error:", err);
-      setError("Something went wrong. Please try again later.");
+      setError("Failed to connect to server.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      console.log("Google login pressed");
-    } catch (err) {
-      Alert.alert("Login Error", "Failed to login with Google.");
-    }
+  const handleGoogleLogin = () => {
+    console.log("Google login pressed");
   };
 
-  const handleFacebookLogin = async () => {
-    try {
-      console.log("Facebook login pressed");
-      // Add Facebook login logic here
-    } catch (err) {
-      Alert.alert("Login Error", "Failed to login with Facebook.");
-    }
+  const handleFacebookLogin = () => {
+    console.log("Facebook login pressed");
   };
 
   const handleForgotPassword = () => {
-<<<<<<< HEAD
     router.push("/forgotpassword");
-=======
-    try {
-      console.log("Forgot password pressed");
-      router.push("/forgotpassword");
-    } catch (err) {
-      Alert.alert("Error", "Unable to navigate to password reset.");
-    }
->>>>>>> c6534c29bccdb0edf444c79a0d1b2df8e88f374f
   };
 
   return (
@@ -145,7 +84,7 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         className="flex-1"
       >
-        {/* Header Section */}
+        {/* Header */}
         <View style={{ height: 300, width: "100%" }}>
           <LinearGradient
             colors={["#3b3b8a", "#141545"]}
@@ -158,76 +97,66 @@ export default function LoginScreen() {
               width: "100%",
             }}
           >
-            <StatusBar style="light" />
+            <Image
+              source={require("../assets/images/icon.png")}
+              style={{ width: 100, height: 100 }}
+              resizeMode="contain"
+            />
             <Text
               style={{
                 color: "white",
                 fontSize: 22,
                 fontWeight: "bold",
                 letterSpacing: 2,
+                marginTop: 10,
               }}
             >
               HAPSAY360
             </Text>
-            <Text style={{ color: "#9CA3AF", fontSize: 12, marginTop: 5 }}>
-              Emergency Response System
-            </Text>
           </LinearGradient>
         </View>
 
-        {/* Form Section */}
-        <View className="flex-1 bg-white px-8 pt-8 pb-8">
-          <Text className="text-2xl font-bold text-gray-800 mb-2">Login</Text>
-          <Text className="text-gray-600 text-sm mb-6">
-            Enter your credentials to continue
-          </Text>
-
-          {/* Email Input */}
+        {/* Form */}
+        <View className="flex-1 bg-white px-8 pt-8">
           <TextInput
             className="bg-gray-100 rounded-lg px-4 py-4 mb-4 text-gray-700 text-base"
             placeholder="Email"
-            placeholderTextColor="#9CA3AF"
             value={email}
             onChangeText={setEmail}
+            placeholderTextColor="#9CA3AF"
             keyboardType="email-address"
             autoCapitalize="none"
             autoComplete="email"
             editable={!loading}
           />
 
-          {/* Password Input */}
           <TextInput
             className="bg-gray-100 rounded-lg px-4 py-4 mb-2 text-gray-700 text-base"
             placeholder="Password"
-            placeholderTextColor="#9CA3AF"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            placeholderTextColor="#9CA3AF"
             autoCapitalize="none"
             autoComplete="password"
             editable={!loading}
           />
 
-          {/* Error Message */}
           {error ? (
             <Text className="text-red-500 text-sm mb-4 text-center">
               {error}
             </Text>
           ) : null}
 
-          {/* Forgot Password */}
           <TouchableOpacity
             onPress={handleForgotPassword}
             className="self-end mb-6"
             activeOpacity={0.7}
             disabled={loading}
           >
-            <Text className="text-blue-600 text-sm font-semibold">
-              Forgot Your Password?
-            </Text>
+            <Text className="text-gray-600 text-sm">Forgot Your Password?</Text>
           </TouchableOpacity>
 
-          {/* Login Button */}
           <TouchableOpacity
             onPress={handleLogin}
             disabled={loading}
@@ -235,57 +164,47 @@ export default function LoginScreen() {
               loading ? "bg-gray-400" : "bg-[#4338ca]"
             } rounded-full py-4 items-center mb-6`}
             activeOpacity={0.8}
-            disabled={loading}
           >
-<<<<<<< HEAD
             {loading ? (
               <ActivityIndicator color="white" />
             ) : (
-              <Text className="text-white font-semibold text-base">Log In</Text>
+              <Text className="text-white font-semibold text-base">Log in</Text>
             )}
-=======
-            <Text className="text-white font-semibold text-base">
-              {loading ? "Logging in..." : "Log in"}
-            </Text>
->>>>>>> c6534c29bccdb0edf444c79a0d1b2df8e88f374f
           </TouchableOpacity>
 
-          {/* Divider */}
           <View className="flex-row items-center mb-6">
             <View className="flex-1 h-px bg-gray-300" />
-            <Text className="mx-4 text-gray-500 text-sm">Or continue with</Text>
+            <Text className="mx-4 text-gray-500 text-sm">Or</Text>
             <View className="flex-1 h-px bg-gray-300" />
           </View>
 
-          {/* Social Login Buttons */}
           <View className="flex-row justify-center mb-8 gap-4">
             <TouchableOpacity
               onPress={handleGoogleLogin}
-              className="flex-1 border border-gray-300 rounded-lg py-3 items-center"
+              className="w-12 h-12 rounded-full bg-white border border-gray-300 items-center justify-center shadow-sm"
               activeOpacity={0.7}
               disabled={loading}
             >
-              <Text className="text-gray-700 font-semibold">Google</Text>
+              <Text className="text-lg font-bold text-red-500">G</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={handleFacebookLogin}
-              className="flex-1 border border-gray-300 rounded-lg py-3 items-center"
+              className="w-12 h-12 rounded-full bg-white border border-gray-300 items-center justify-center shadow-sm"
               activeOpacity={0.7}
               disabled={loading}
             >
-              <Text className="text-gray-700 font-semibold">Facebook</Text>
+              <Text className="text-xl font-bold text-blue-600">f</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Sign Up Link */}
           <View className="flex-row justify-center items-center">
             <Text className="text-gray-600 text-sm">
               Don't have an account?{" "}
             </Text>
             <Link href="/SignupScreen" asChild>
               <TouchableOpacity disabled={loading}>
-                <Text className="text-blue-600 text-sm font-semibold">
+                <Text className="text-blue-600 text-sm font-semibold underline">
                   Sign Up
                 </Text>
               </TouchableOpacity>
