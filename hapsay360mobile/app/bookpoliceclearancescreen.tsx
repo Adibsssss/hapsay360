@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,40 +7,98 @@ import {
   ScrollView,
   useColorScheme,
   TextInput,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter, usePathname } from "expo-router";
+import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import BottomNav from "./components/bottomnav";
 import GradientHeader from "./components/GradientHeader";
 
 export default function BookPoliceClearanceScreen() {
   const router = useRouter();
-  const pathname = usePathname();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const bgColor = isDark ? "#1a1f4d" : "#ffffff";
-  const [isEditing, setIsEditing] = useState(false);
-  const [email, setEmail] = useState("sophiacarter@gmail.com");
-  const [birthday, setBirthday] = useState("01/10/2004");
-  const [sex, setSex] = useState("Female");
-  const [address, setAddress] = useState("Baliuag, Cagayan de Oro City");
 
-  const handleToggleEdit = () => {
-    if (isEditing) {
-      console.log("Saved:", { email, birthday, sex, address });
-      setIsEditing(false);
-    } else {
-      setIsEditing(true);
+  const [profile, setProfile] = useState<any>(null);
+  const [email, setEmail] = useState("");
+  const [birthday, setBirthday] = useState("");
+  const [sex, setSex] = useState("");
+  const [address, setAddress] = useState("");
+
+  // Helper to format address
+  const formatAddress = (addr: any) => {
+    if (!addr) return "";
+    return [addr.houseNo, addr.barangay, addr.city, addr.province]
+      .filter(Boolean)
+      .join(", ");
+  };
+
+  // Load profile on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = await AsyncStorage.getItem("authToken");
+        if (!token) {
+          Alert.alert("Error", "Please login again");
+          router.push("/login");
+          return;
+        }
+
+        const res = await fetch(
+          "http://192.168.1.48:3000/api/application/get",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!res.ok) throw new Error("Failed to fetch profile");
+
+        const data = await res.json();
+
+        if (data.profile) {
+          setProfile(data.profile);
+
+          // Set state values
+          setEmail(data.profile.address?.email || "");
+          setBirthday(data.profile.personal_info?.birthdate || "");
+          setSex(data.profile.personal_info?.sex || "");
+          setAddress(formatAddress(data.profile.address));
+        }
+      } catch (err: any) {
+        console.error(err);
+        Alert.alert("Error", "Failed to load profile");
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  // Navigate to ApplicationForm with profile data
+  const handleEditProfile = () => {
+    if (!profile) {
+      Alert.alert("Error", "Profile not loaded yet");
+      return;
     }
+
+    router.push({
+      pathname: "/applicationform", // Path to your ApplicationForm screen
+      params: {
+        profile: JSON.stringify(profile), // Pass profile as a string
+      },
+    });
   };
 
   return (
     <SafeAreaView
-      className="flex-1"
+      style={{ flex: 1, backgroundColor: bgColor }}
       edges={["left", "right"]}
-      style={{ backgroundColor: bgColor }}
     >
-      {/* Reusable Gradient Header */}
       <GradientHeader title="Book Appointment" onBack={() => router.back()} />
 
       <ScrollView className="flex-1 bg-white">
@@ -55,13 +113,14 @@ export default function BookPoliceClearanceScreen() {
             />
           </View>
           <Text className="text-gray-900 text-xl font-semibold">
-            Sophia Carter
+            {profile?.personal_info?.givenName}{" "}
+            {profile?.personal_info?.surname}
           </Text>
         </View>
 
-        {/* Editable Info Fields arranged label-left, box-right */}
+        {/* Editable Info Fields */}
         <View className="px-6 py-4 rounded-2xl mt-2">
-          {/* Email row */}
+          {/* Email */}
           <View className="flex-row items-center mb-3">
             <Text className="w-28 text-gray-700 text-sm font-medium text-left">
               Email:
@@ -69,7 +128,7 @@ export default function BookPoliceClearanceScreen() {
             <TextInput
               value={email}
               onChangeText={setEmail}
-              editable={isEditing}
+              editable={false}
               placeholder="Email"
               keyboardType="email-address"
               className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-base text-gray-900"
@@ -77,7 +136,7 @@ export default function BookPoliceClearanceScreen() {
             />
           </View>
 
-          {/* Birthday row */}
+          {/* Birthday */}
           <View className="flex-row items-center mb-3">
             <Text className="w-28 text-gray-700 text-sm font-medium text-left">
               Birthday:
@@ -85,14 +144,14 @@ export default function BookPoliceClearanceScreen() {
             <TextInput
               value={birthday}
               onChangeText={setBirthday}
-              editable={isEditing}
+              editable={false}
               placeholder="MM/DD/YYYY"
               className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-base text-gray-900"
               style={{ backgroundColor: "#DEEBF8" }}
             />
           </View>
 
-          {/* Sex row */}
+          {/* Sex */}
           <View className="flex-row items-center mb-3">
             <Text className="w-28 text-gray-700 text-sm font-medium text-left">
               Sex:
@@ -100,14 +159,14 @@ export default function BookPoliceClearanceScreen() {
             <TextInput
               value={sex}
               onChangeText={setSex}
-              editable={isEditing}
+              editable={false}
               placeholder="Sex"
               className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-base text-gray-900"
               style={{ backgroundColor: "#DEEBF8" }}
             />
           </View>
 
-          {/* Address row */}
+          {/* Address */}
           <View className="flex-row items-start">
             <Text className="w-28 text-gray-700 text-sm font-medium text-left mt-2">
               Address:
@@ -115,7 +174,7 @@ export default function BookPoliceClearanceScreen() {
             <TextInput
               value={address}
               onChangeText={setAddress}
-              editable={isEditing}
+              editable={false}
               placeholder="Address"
               multiline
               className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-base text-gray-900"
@@ -124,15 +183,15 @@ export default function BookPoliceClearanceScreen() {
           </View>
         </View>
 
-        {/* Action Buttons - spaced vertically */}
+        {/* Action Buttons */}
         <View className="mt-6 mb-8 px-6">
           <TouchableOpacity
-            onPress={handleToggleEdit}
+            onPress={handleEditProfile}
             style={{ backgroundColor: "#3234AB", marginBottom: 16 }}
             className="rounded-lg py-4 items-center"
           >
             <Text className="text-white font-semibold text-base">
-              {isEditing ? "Save" : "Edit profile"}
+              Edit profile
             </Text>
           </TouchableOpacity>
 
@@ -158,7 +217,6 @@ export default function BookPoliceClearanceScreen() {
         </View>
       </ScrollView>
 
-      {/* Bottom Navigation */}
       <BottomNav activeRoute="/(tabs)/clearance" />
     </SafeAreaView>
   );

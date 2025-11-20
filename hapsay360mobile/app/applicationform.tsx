@@ -1,17 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TextInput,
   Pressable,
   useColorScheme,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view"; // 👈 added
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import GradientHeader from "./components/GradientHeader";
 
+// Section Title Component
 const SectionTitle = ({
   children,
   color,
@@ -32,10 +35,12 @@ const SectionTitle = ({
   </Text>
 );
 
+// Divider Component
 const Divider = ({ color }: { color: string }) => (
   <View style={{ height: 1, backgroundColor: color, marginVertical: 16 }} />
 );
 
+// Text Input Field
 const InputField = ({
   label,
   value,
@@ -64,12 +69,13 @@ const InputField = ({
         borderRadius: 8,
         paddingHorizontal: 12,
         paddingVertical: 8,
-        color: color,
+        color,
       }}
     />
   </View>
 );
 
+// Checkbox Component
 const Checkbox = ({
   label,
   value,
@@ -95,6 +101,7 @@ const Checkbox = ({
   </Pressable>
 );
 
+// Button Component
 const Button = ({
   label,
   onPress,
@@ -124,6 +131,50 @@ const Button = ({
   </Pressable>
 );
 
+// Option Selector Component
+const OptionSelector = ({
+  label,
+  options,
+  selected,
+  onSelect,
+  color,
+}: {
+  label: string;
+  options: string[];
+  selected: string;
+  onSelect: (value: string) => void;
+  color: string;
+}) => (
+  <View style={{ marginBottom: 16 }}>
+    <Text style={{ color, marginBottom: 4 }}>{label}</Text>
+    {options.map((opt) => (
+      <Pressable
+        key={opt}
+        onPress={() => onSelect(opt)}
+        style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}
+      >
+        <Ionicons
+          name={selected === opt ? "checkmark-circle" : "ellipse-outline"}
+          size={24}
+          color={selected === opt ? color : "#999"}
+          style={{ marginRight: 8 }}
+        />
+        <Text style={{ color }}>{opt}</Text>
+      </Pressable>
+    ))}
+  </View>
+);
+
+// Helper to format ISO date to MM/DD/YYYY
+const formatDateToLocal = (isoDate: string) => {
+  if (!isoDate) return "";
+  const d = new Date(isoDate);
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${month}/${day}/${year}`;
+};
+
 export default function ApplicationForm() {
   const router = useRouter();
   const colorScheme = useColorScheme();
@@ -133,7 +184,11 @@ export default function ApplicationForm() {
   const dividerColor = isDark ? "#4b5563" : "#d1d5db";
   const buttonColor = isDark ? "#3b82f6" : "#1a1f4d";
 
-  // Personal Info
+  const [loading, setLoading] = useState(false);
+  const [userLoaded, setUserLoaded] = useState(false);
+  const [hasExistingProfile, setHasExistingProfile] = useState(false);
+
+  // ---------------- Personal Info ----------------
   const [givenName, setGivenName] = useState("");
   const [middleName, setMiddleName] = useState("");
   const [surname, setSurname] = useState("");
@@ -141,15 +196,13 @@ export default function ApplicationForm() {
   const [sex, setSex] = useState("");
   const [civilStatus, setCivilStatus] = useState("");
   const [birthdate, setBirthdate] = useState("");
-
   const [isPWD, setIsPWD] = useState(false);
   const [isFirstTimeJobSeeker, setIsFirstTimeJobSeeker] = useState(false);
-
   const [nationality, setNationality] = useState("");
   const [birthPlace, setBirthPlace] = useState("");
   const [otherCountry, setOtherCountry] = useState("");
 
-  // Contact / Address
+  // ---------------- Contact / Address ----------------
   const [houseNo, setHouseNo] = useState("");
   const [province, setProvince] = useState("");
   const [city, setCity] = useState("");
@@ -158,7 +211,7 @@ export default function ApplicationForm() {
   const [mobile, setMobile] = useState("");
   const [telephone, setTelephone] = useState("");
 
-  // Other Info
+  // ---------------- Other Info ----------------
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
   const [complexion, setComplexion] = useState("");
@@ -168,7 +221,7 @@ export default function ApplicationForm() {
   const [education, setEducation] = useState("");
   const [occupation, setOccupation] = useState("");
 
-  // Family
+  // ---------------- Family ----------------
   const [fatherGiven, setFatherGiven] = useState("");
   const [fatherMiddle, setFatherMiddle] = useState("");
   const [fatherSurname, setFatherSurname] = useState("");
@@ -188,55 +241,252 @@ export default function ApplicationForm() {
   const [spouseSurname, setSpouseSurname] = useState("");
   const [spouseQualifier, setSpouseQualifier] = useState("");
 
-  const handleSaveProfile = () => {
-    const profile = {
-      givenName,
-      middleName,
-      surname,
-      qualifier,
-      sex,
-      civilStatus,
-      birthdate,
-      isPWD,
-      isFirstTimeJobSeeker,
-      nationality,
-      birthPlace,
-      otherCountry,
-      houseNo,
-      province,
-      city,
-      barangay,
-      email,
-      mobile,
-      telephone,
-      height,
-      weight,
-      complexion,
-      identifyingMarks,
-      bloodType,
-      religion,
-      education,
-      occupation,
-      fatherGiven,
-      fatherMiddle,
-      fatherSurname,
-      fatherQualifier,
-      fatherBirthPlace,
-      fatherOtherCountry,
-      motherGiven,
-      motherMiddle,
-      motherSurname,
-      motherQualifier,
-      motherBirthPlace,
-      motherOtherCountry,
-      spouseGiven,
-      spouseMiddle,
-      spouseSurname,
-      spouseQualifier,
-    };
-    console.log(profile);
-    router.push("/bookpoliceclearancescreen");
+  // ---------------- Helper ----------------
+  const getAuthToken = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      return token;
+    } catch (error) {
+      console.error("Error getting auth token:", error);
+      return null;
+    }
   };
+
+  // ---------------- Load Profile ----------------
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        const token = await getAuthToken();
+        if (!token) {
+          Alert.alert("Error", "Please login again");
+          router.push("/login");
+          return;
+        }
+
+        const res = await fetch(
+          "http://192.168.1.48:3000/api/application/get",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!res.ok) {
+          if (res.status === 401) {
+            Alert.alert("Session Expired", "Please login again");
+            router.push("/login");
+            return;
+          }
+          throw new Error("Failed to fetch profile");
+        }
+
+        const data = await res.json();
+
+        if (data.profile && data.profile.personal_info?.givenName) {
+          setHasExistingProfile(true);
+          Alert.alert(
+            "Profile Found",
+            "Your previously saved information has been loaded. You can edit and update it."
+          );
+
+          const p = data.profile;
+          setGivenName(p.personal_info?.givenName || "");
+          setMiddleName(p.personal_info?.middleName || "");
+          setSurname(p.personal_info?.surname || "");
+          setQualifier(p.personal_info?.qualifier || "");
+          setSex(p.personal_info?.sex || "");
+          setCivilStatus(p.personal_info?.civilStatus || "");
+          setBirthdate(formatDateToLocal(p.personal_info?.birthdate || ""));
+          setIsPWD(p.personal_info?.isPWD || false);
+          setIsFirstTimeJobSeeker(
+            p.personal_info?.isFirstTimeJobSeeker || false
+          );
+          setNationality(p.personal_info?.nationality || "");
+          setBirthPlace(p.personal_info?.birthPlace || "");
+          setOtherCountry(p.personal_info?.otherCountry || "");
+
+          // contact
+          setHouseNo(p.address?.houseNo || "");
+          setProvince(p.address?.province || "");
+          setCity(p.address?.city || "");
+          setBarangay(p.address?.barangay || "");
+          setEmail(p.address?.email || "");
+          setMobile(p.address?.mobile || "");
+          setTelephone(p.address?.telephone || "");
+
+          // other info
+          setHeight(p.other_info?.height || "");
+          setWeight(p.other_info?.weight || "");
+          setComplexion(p.other_info?.complexion || "");
+          setIdentifyingMarks(p.other_info?.identifyingMarks || "");
+          setBloodType(p.other_info?.bloodType || "");
+          setReligion(p.other_info?.religion || "");
+          setEducation(p.other_info?.education || "");
+          setOccupation(p.other_info?.occupation || "");
+
+          // family
+          setFatherGiven(p.family?.father?.given || "");
+          setFatherMiddle(p.family?.father?.middle || "");
+          setFatherSurname(p.family?.father?.surname || "");
+          setFatherQualifier(p.family?.father?.qualifier || "");
+          setFatherBirthPlace(p.family?.father?.birthPlace || "");
+          setFatherOtherCountry(p.family?.father?.otherCountry || "");
+
+          setMotherGiven(p.family?.mother?.given || "");
+          setMotherMiddle(p.family?.mother?.middle || "");
+          setMotherSurname(p.family?.mother?.surname || "");
+          setMotherQualifier(p.family?.mother?.qualifier || "");
+          setMotherBirthPlace(p.family?.mother?.birthPlace || "");
+          setMotherOtherCountry(p.family?.mother?.otherCountry || "");
+
+          setSpouseGiven(p.family?.spouse?.given || "");
+          setSpouseMiddle(p.family?.spouse?.middle || "");
+          setSpouseSurname(p.family?.spouse?.surname || "");
+          setSpouseQualifier(p.family?.spouse?.qualifier || "");
+        } else {
+          setHasExistingProfile(false);
+        }
+
+        setUserLoaded(true);
+      } catch (err: any) {
+        console.error(err);
+        Alert.alert("Error", "Failed to load profile. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  // ---------------- Save Profile ----------------
+  const handleSaveProfile = async () => {
+    if (!givenName || !surname || !email) {
+      Alert.alert(
+        "Validation Error",
+        "Please fill in your given name, surname, and email."
+      );
+      return;
+    }
+
+    const profile = {
+      personal_info: {
+        givenName,
+        middleName,
+        surname,
+        qualifier,
+        sex,
+        civilStatus,
+        birthdate,
+        isPWD,
+        isFirstTimeJobSeeker,
+        nationality,
+        birthPlace,
+        otherCountry,
+      },
+      address: { houseNo, province, city, barangay, email, mobile, telephone },
+      other_info: {
+        height,
+        weight,
+        complexion,
+        identifyingMarks,
+        bloodType,
+        religion,
+        education,
+        occupation,
+      },
+      family: {
+        father: {
+          given: fatherGiven,
+          middle: fatherMiddle,
+          surname: fatherSurname,
+          qualifier: fatherQualifier,
+          birthPlace: fatherBirthPlace,
+          otherCountry: fatherOtherCountry,
+        },
+        mother: {
+          given: motherGiven,
+          middle: motherMiddle,
+          surname: motherSurname,
+          qualifier: motherQualifier,
+          birthPlace: motherBirthPlace,
+          otherCountry: motherOtherCountry,
+        },
+        spouse: {
+          given: spouseGiven,
+          middle: spouseMiddle,
+          surname: spouseSurname,
+          qualifier: spouseQualifier,
+        },
+      },
+    };
+
+    try {
+      setLoading(true);
+      const token = await getAuthToken();
+      if (!token) {
+        Alert.alert("Error", "Please login again");
+        router.push("/login");
+        return;
+      }
+
+      const res = await fetch("http://192.168.1.48:3000/api/application/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(profile),
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          Alert.alert("Session Expired", "Please login again");
+          router.push("/login");
+          return;
+        }
+        const errData = await res.json();
+        throw new Error(errData.message || "Server error");
+      }
+
+      const result = await res.json();
+      Alert.alert(
+        "Success",
+        hasExistingProfile
+          ? "Profile updated successfully!"
+          : "Profile saved successfully!",
+        [
+          {
+            text: "OK",
+            onPress: () => router.push("/bookpoliceclearancescreen"),
+          },
+        ]
+      );
+    } catch (err: any) {
+      console.error(err);
+      Alert.alert("Error", `Failed to save profile: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!userLoaded) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: bgColor }}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <Text style={{ color: textColor, fontSize: 16 }}>
+            Loading your profile...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView
@@ -244,7 +494,6 @@ export default function ApplicationForm() {
       edges={["left", "right"]}
     >
       <GradientHeader title="Application Form" onBack={() => router.back()} />
-
       <KeyboardAwareScrollView
         style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 24 }}
         enableOnAndroid={true}
@@ -252,7 +501,7 @@ export default function ApplicationForm() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Section: Personal Info */}
+        {/* Personal Info */}
         <SectionTitle color={textColor}>Application Profile</SectionTitle>
         <InputField
           label="Given Name"
@@ -272,22 +521,25 @@ export default function ApplicationForm() {
           onChangeText={setSurname}
           color={textColor}
         />
-        <InputField
+        <OptionSelector
           label="Qualifier"
-          value={qualifier}
-          onChangeText={setQualifier}
+          options={["Jr", "Sr", "N/A"]}
+          selected={qualifier}
+          onSelect={setQualifier}
           color={textColor}
         />
-        <InputField
+        <OptionSelector
           label="Sex"
-          value={sex}
-          onChangeText={setSex}
+          options={["Male", "Female", "Other"]}
+          selected={sex}
+          onSelect={setSex}
           color={textColor}
         />
-        <InputField
+        <OptionSelector
           label="Civil Status"
-          value={civilStatus}
-          onChangeText={setCivilStatus}
+          options={["Single", "Married", "Widowed", "Divorced", "N/A"]}
+          selected={civilStatus}
+          onSelect={setCivilStatus}
           color={textColor}
         />
         <InputField
@@ -297,7 +549,6 @@ export default function ApplicationForm() {
           color={textColor}
           placeholder="MM/DD/YYYY"
         />
-
         <Checkbox
           label="I am a PWD"
           value={isPWD}
@@ -310,7 +561,6 @@ export default function ApplicationForm() {
           onToggle={() => setIsFirstTimeJobSeeker(!isFirstTimeJobSeeker)}
           color={textColor}
         />
-
         <InputField
           label="Nationality"
           value={nationality}
@@ -381,10 +631,8 @@ export default function ApplicationForm() {
 
         <Divider color={dividerColor} />
 
-        {/* Other Information */}
+        {/* Other Info */}
         <SectionTitle color={textColor}>Other Information</SectionTitle>
-
-        {/* Two-column: Height & Weight */}
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <InputField
             label="Height (cm)"
@@ -401,7 +649,6 @@ export default function ApplicationForm() {
             style={{ marginLeft: 8 }}
           />
         </View>
-
         <InputField
           label="Complexion"
           value={complexion}
@@ -443,8 +690,6 @@ export default function ApplicationForm() {
 
         {/* Family Background */}
         <SectionTitle color={textColor}>Family Background</SectionTitle>
-
-        {/* Father */}
         <InputField
           label="Father's Given Name"
           value={fatherGiven}
@@ -482,7 +727,6 @@ export default function ApplicationForm() {
           color={textColor}
         />
 
-        {/* Mother */}
         <InputField
           label="Mother's Maiden Given Name"
           value={motherGiven}
@@ -520,7 +764,6 @@ export default function ApplicationForm() {
           color={textColor}
         />
 
-        {/* Spouse */}
         <InputField
           label="Spouse Given Name"
           value={spouseGiven}
@@ -546,10 +789,16 @@ export default function ApplicationForm() {
           color={textColor}
         />
 
-        {/* Save Profile Button */}
         <Button
-          label="Save Profile"
+          label={
+            loading
+              ? "Saving..."
+              : hasExistingProfile
+                ? "Update Profile"
+                : "Save Profile"
+          }
           onPress={handleSaveProfile}
+          disabled={loading}
           bgColor={buttonColor}
         />
       </KeyboardAwareScrollView>

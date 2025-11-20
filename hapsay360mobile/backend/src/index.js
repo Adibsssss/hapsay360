@@ -3,14 +3,17 @@ import cors from "cors";
 import "dotenv/config.js";
 
 import authRoutes from "./routes/authRoutes.js";
+import applicationRoutes from "./routes/application.js";
 import { connectDB } from "./lib/db.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors()); // adjust allowed origins in production
+app.use(cors());
 app.use(express.json());
+
 app.use("/api/auth", authRoutes);
+app.use("/api/application", applicationRoutes);
 
 const start = async () => {
   try {

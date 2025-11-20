@@ -10,32 +10,74 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    password: {
-      type: String,
-      required: true,
-      minlength: 6,
-    },
-    profileImage: {
-      type: String,
-      default: "",
-    },
+    password: { type: String, required: true, minlength: 6 },
+    profileImage: { type: String, default: "" },
+
+    // Personal Info
     personal_info: {
-      firstName: String,
-      lastName: String,
+      givenName: String,
       middleName: String,
-      dateOfBirth: Date,
+      surname: String,
+      qualifier: String,
+      sex: String,
+      civilStatus: String,
+      birthdate: Date,
+      isPWD: Boolean,
+      isFirstTimeJobSeeker: Boolean,
+      nationality: String,
+      birthPlace: String,
+      otherCountry: String,
     },
+
+    // Contact / Address
     address: {
-      street: String,
-      city: String,
+      houseNo: String,
       province: String,
-      zipCode: String,
-      country: String,
+      city: String,
+      barangay: String,
+      email: String,
+      mobile: String,
+      telephone: String,
     },
-    phone_number: {
-      type: String,
-      trim: true,
+
+    // Other Info
+    other_info: {
+      height: String,
+      weight: String,
+      complexion: String,
+      identifyingMarks: String,
+      bloodType: String,
+      religion: String,
+      education: String,
+      occupation: String,
     },
+
+    // Family Info
+    family: {
+      father: {
+        given: String,
+        middle: String,
+        surname: String,
+        qualifier: String,
+        birthPlace: String,
+        otherCountry: String,
+      },
+      mother: {
+        given: String,
+        middle: String,
+        surname: String,
+        qualifier: String,
+        birthPlace: String,
+        otherCountry: String,
+      },
+      spouse: {
+        given: String,
+        middle: String,
+        surname: String,
+        qualifier: String,
+      },
+    },
+
     status: {
       type: String,
       enum: ["Active", "Inactive", "Suspended"],
