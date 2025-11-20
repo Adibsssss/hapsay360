@@ -7,12 +7,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+
+const API_BASE = "http://192.168.1.6:3000"; // Replace with your PC LAN IP
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -21,14 +24,57 @@ export default function SignupScreen() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [phone_number, setPhoneNumber] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSignup = () => {
-    // Here you can call your backend API to create an account
-    console.log({ firstName, lastName, email, password });
+  const handleSignup = async () => {
+    if (!email || !password || !confirmPassword) {
+      Alert.alert("Error", "Email and password are required");
+      return;
+    }
 
-    // After signup, navigate to another page (e.g., Welcome page)
-    router.push("/(tabs)");
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert("Error", "Password must be at least 6 characters");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          firstName: firstName || null,
+          lastName: lastName || null,
+          phone_number: phone_number || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert("Registration Failed", data.message || "Unknown error");
+        return;
+      }
+
+      Alert.alert("Success", "Account created successfully. Please log in.");
+      router.push("/");
+    } catch (error) {
+      Alert.alert("Error", error.message || "Failed to connect to server");
+      console.error("Signup error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,7 +88,8 @@ export default function SignupScreen() {
         keyboardShouldPersistTaps="handled"
         className="flex-1"
       >
-        <View style={{ height: 300, width: "100%" }}>
+        {/* Header Section */}
+        <View style={{ height: 250, width: "100%" }}>
           <LinearGradient
             colors={["#3b3b8a", "#141545"]}
             start={{ x: 0, y: 0 }}
@@ -55,78 +102,121 @@ export default function SignupScreen() {
             }}
           >
             <StatusBar style="light" />
-            <Image
-              source={require("../assets/images/icon.png")}
-              style={{ width: 100, height: 100 }}
-              resizeMode="contain"
-            />
             <Text
               style={{
                 color: "white",
                 fontSize: 22,
                 fontWeight: "bold",
                 letterSpacing: 2,
-                marginTop: 10,
               }}
             >
               HAPSAY360
+            </Text>
+            <Text style={{ color: "#9CA3AF", fontSize: 12, marginTop: 5 }}>
+              Create Your Account
             </Text>
           </LinearGradient>
         </View>
 
         {/* Form Section */}
-        <View className="flex-1 bg-white px-8 pt-8">
+        <View className="flex-1 bg-white px-8 pt-8 pb-8">
+          <Text className="text-2xl font-bold text-gray-800 mb-2">Sign Up</Text>
+          <Text className="text-gray-600 text-sm mb-6">
+            Fill in your information to get started
+          </Text>
+
+          {/* First Name Input */}
+          <TextInput
+            className="bg-gray-100 rounded-lg px-4 py-4 mb-4 text-gray-700 text-base"
+            placeholder="First Name (Optional)"
+            placeholderTextColor="#9CA3AF"
+            value={firstName}
+            onChangeText={setFirstName}
+            autoCapitalize="words"
+            editable={!loading}
+          />
+
+          {/* Last Name Input */}
+          <TextInput
+            className="bg-gray-100 rounded-lg px-4 py-4 mb-4 text-gray-700 text-base"
+            placeholder="Last Name (Optional)"
+            placeholderTextColor="#9CA3AF"
+            value={lastName}
+            onChangeText={setLastName}
+            autoCapitalize="words"
+            editable={!loading}
+          />
+
           {/* Email Input */}
           <TextInput
             className="bg-gray-100 rounded-lg px-4 py-4 mb-4 text-gray-700 text-base"
-            placeholder="Email"
+            placeholder="Email *"
             placeholderTextColor="#9CA3AF"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
             autoComplete="email"
+            editable={!loading}
           />
 
-          {/* First Name Input */}
+          {/* Phone Number Input */}
           <TextInput
             className="bg-gray-100 rounded-lg px-4 py-4 mb-4 text-gray-700 text-base"
-            placeholder="First Name"
+            placeholder="Phone Number (Optional)"
             placeholderTextColor="#9CA3AF"
-            value={firstName}
-            onChangeText={setFirstName}
-            autoCapitalize="words"
-          />
-
-          {/* Last Name Input */}
-          <TextInput
-            className="bg-gray-100 rounded-lg px-4 py-4 mb-4 text-gray-700 text-base"
-            placeholder="Last Name"
-            placeholderTextColor="#9CA3AF"
-            value={lastName}
-            onChangeText={setLastName}
-            autoCapitalize="words"
+            value={phone_number}
+            onChangeText={setPhoneNumber}
+            keyboardType="phone-pad"
+            editable={!loading}
           />
 
           {/* Password Input with Show/Hide */}
-          <View className="mb-6 relative">
+          <View className="mb-4 relative">
             <TextInput
               className="bg-gray-100 rounded-lg px-4 py-4 text-gray-700 text-base pr-12"
-              placeholder="Password"
+              placeholder="Password *"
               placeholderTextColor="#9CA3AF"
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
               autoCapitalize="none"
-              autoComplete="password"
+              editable={!loading}
             />
             <TouchableOpacity
               className="absolute right-4 top-1/2 -translate-y-1/2"
               onPress={() => setShowPassword(!showPassword)}
               activeOpacity={0.7}
+              disabled={loading}
             >
               <Ionicons
                 name={showPassword ? "eye" : "eye-off"}
+                size={24}
+                color="#9CA3AF"
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Confirm Password Input */}
+          <View className="mb-6 relative">
+            <TextInput
+              className="bg-gray-100 rounded-lg px-4 py-4 text-gray-700 text-base pr-12"
+              placeholder="Confirm Password *"
+              placeholderTextColor="#9CA3AF"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry={!showConfirmPassword}
+              autoCapitalize="none"
+              editable={!loading}
+            />
+            <TouchableOpacity
+              className="absolute right-4 top-1/2 -translate-y-1/2"
+              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              activeOpacity={0.7}
+              disabled={loading}
+            >
+              <Ionicons
+                name={showConfirmPassword ? "eye" : "eye-off"}
                 size={24}
                 color="#9CA3AF"
               />
@@ -138,8 +228,15 @@ export default function SignupScreen() {
             onPress={handleSignup}
             className="bg-[#4338ca] rounded-full py-4 items-center mb-6"
             activeOpacity={0.8}
+            disabled={loading}
           >
-            <Text className="text-white font-semibold text-base">Sign Up</Text>
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-white font-semibold text-base">
+                Create Account
+              </Text>
+            )}
           </TouchableOpacity>
 
           {/* Login Link */}
@@ -147,8 +244,11 @@ export default function SignupScreen() {
             <Text className="text-gray-600 text-sm">
               Already have an account?{" "}
             </Text>
-            <TouchableOpacity onPress={() => router.push("/")}>
-              <Text className="text-blue-600 text-sm font-semibold underline">
+            <TouchableOpacity
+              onPress={() => router.push("/")}
+              disabled={loading}
+            >
+              <Text className="text-blue-600 text-sm font-semibold">
                 Log In
               </Text>
             </TouchableOpacity>

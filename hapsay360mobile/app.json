@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "",
+    "name": "hapsay360",
     "slug": "hapsay360",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "hapsay360",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true
     },
@@ -16,31 +16,19 @@
         "backgroundColor": "#141545"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.hapsay360"
     },
     "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png",
       "bundler": "metro"
     },
     "plugins": [
       "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#141545",
-          "dark": {
-            "backgroundColor": "#141545"
-          }
-        }
-      ]
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": false
     }
   }
 }
