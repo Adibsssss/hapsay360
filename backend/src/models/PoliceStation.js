@@ -4,15 +4,15 @@ import mongoose from 'mongoose';
 const stationContactSchema = new mongoose.Schema({
     phone_number: {
         type: String,
-        required: false
+        required: true
     },
     email: {
         type: String,
-        required: false
+        required: true
     },
     landline: {
         type: String,
-        required: false
+        required: true
     }
 }, { _id: false });
 
@@ -39,11 +39,11 @@ const policeStationSchema = new mongoose.Schema({
     },
     contact: {
         type: stationContactSchema,
-        required: false
+        required: true
     },
     location: {
         type: stationLocationSchema,
-        required: true
+        required: false
     },
     officer_IDs: {
         type: [mongoose.Schema.Types.ObjectId],

@@ -25,7 +25,6 @@ export const register = async (req, res) => {
     try {
         const { given_name, middle_name, surname, email, password } = req.body;
 
-        // Validation
         if (!given_name || !middle_name || !surname || !email || !password) {
             return res.status(400).json({
                 success: false,

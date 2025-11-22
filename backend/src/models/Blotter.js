@@ -16,7 +16,8 @@ const locationSchema = new mongoose.Schema({
 const incidentSchema = new mongoose.Schema({
     incident_type: {
         type: String,
-        required: true
+        required: true,
+        enum: ['Theft', 'Robbery', 'Assault', 'Other']
     },
     date: {
         type: Date,
@@ -28,7 +29,7 @@ const incidentSchema = new mongoose.Schema({
     },
     location: {
         type: locationSchema,
-        required: true
+        required: false
     },
     description: {
         type: String,
@@ -54,18 +55,6 @@ const blotterSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    fullname: {
-        type: String,
-        required: true
-    },
-    contact_number: {
-        type: String,
-        required: false
-    },
-    home_address: {
-        type: String,
-        required: true
-    },
     incident: {
         type: incidentSchema,
         required: true
@@ -74,9 +63,15 @@ const blotterSchema = new mongoose.Schema({
         type: [attachmentSchema],
         default: []
     },
+    assigned_officer: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Officer',
+        required: false
+    },
     status: {
         type: String,
         required: true,
+        enum: ['Pending', 'Under Review', 'Investigating', 'Resolved', 'Closed'],
         default: 'pending'
     },
     created_at: {

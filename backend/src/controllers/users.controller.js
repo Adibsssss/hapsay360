@@ -73,6 +73,25 @@ export const getUserById = async (req, res) => {
     }
 };
 
+export const createUser = async (req, res) => {
+    try {
+        const userData = req.body;
+        const newUser = new User(userData);
+        await newUser.save();
+        res.status(201).json({
+            success: true,
+            data: newUser
+        });
+    } catch (error) {
+        console.error('Error creating user:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server Error',
+            error: error.message
+        });
+    }
+};
+
 /**
  * Update user by ID
  * @route PUT /api/users/:id
