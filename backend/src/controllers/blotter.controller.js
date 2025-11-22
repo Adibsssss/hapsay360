@@ -61,7 +61,7 @@ export const createBlotter = async (req, res) => {
 
 /** 
  * @route GET /api/blotters
- * Get all blotters
+ * Get all blotters using async/wait function
  * */
 export const getAllBlotters = async (req, res) => {
     try {
