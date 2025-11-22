@@ -10,28 +10,37 @@ import {
   FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { Shield } from "lucide-react-native";
 import GradientHeader from "./components/GradientHeader";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import DateTimePicker from "@react-native-community/datetimepicker";
+
+const API_BASE = "http://192.168.1.6:3000";
 
 export default function IncidentDetails() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+
+  // Get reporter info from navigation params
+  const reporterName = params.reporterName || "";
+  const reporterContact = params.reporterContact || "";
+  const reporterAddress = params.location || "";
+
   const [incidentType, setIncidentType] = useState("Theft");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
 
-  // Separate state for incident location and user location
   const [incidentLocation, setIncidentLocation] = useState({
     latitude: 8.4542,
     longitude: 124.6319,
   });
   const [userLocation, setUserLocation] = useState(null);
-
   const [description, setDescription] = useState("");
   const [locationLoaded, setLocationLoaded] = useState(false);
 
@@ -41,9 +50,54 @@ export default function IncidentDetails() {
     documents: [],
   });
 
-  const MAX_ATTACHMENTS = 5;
+  //Date and time picker states
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
-  // Police Stations Data
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const MAX_ATTACHMENTS = 5;
+  const handleDateChange = (event, selected) => {
+    if (event.type === "dismissed") {
+      setShowDatePicker(false);
+      return;
+    }
+
+    setShowDatePicker(false);
+
+    if (selected) {
+      setSelectedDate(selected);
+
+      const formatted =
+        ("0" + selected.getDate()).slice(-2) +
+        "-" +
+        ("0" + (selected.getMonth() + 1)).slice(-2) +
+        "-" +
+        selected.getFullYear();
+
+      setDate(formatted);
+    }
+  };
+
+  const handleTimeChange = (event, selected) => {
+    if (event.type === "dismissed") {
+      setShowTimePicker(false);
+      return;
+    }
+
+    setShowTimePicker(false);
+
+    if (selected) {
+      const hours = selected.getHours();
+      const minutes = selected.getMinutes();
+      const ampm = hours >= 12 ? "PM" : "AM";
+      const formattedTime =
+        ((hours + 11) % 12) + 1 + ":" + ("0" + minutes).slice(-2) + " " + ampm;
+
+      setTime(formattedTime);
+    }
+  };
+
   const policeStations = [
     {
       id: 1,
@@ -99,8 +153,8 @@ export default function IncidentDetails() {
   const [selectedStation, setSelectedStation] = useState(null);
   const [stationDistance, setStationDistance] = useState(null);
   const [stationTime, setStationTime] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Calculate distance between two coordinates
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -115,7 +169,6 @@ export default function IncidentDetails() {
     return R * c;
   };
 
-  // Find and select nearest station
   const findNearestStation = () => {
     if (!locationLoaded) return;
 
@@ -146,7 +199,6 @@ export default function IncidentDetails() {
     setStationTime(estimatedTime);
   };
 
-  // Location Permission
   useEffect(() => {
     (async () => {
       try {
@@ -164,7 +216,6 @@ export default function IncidentDetails() {
           longitude: currentLocation.coords.longitude,
         };
 
-        // Set both user location and initial incident location to current position
         setUserLocation(coords);
         setIncidentLocation(coords);
         setLocationLoaded(true);
@@ -174,14 +225,12 @@ export default function IncidentDetails() {
     })();
   }, []);
 
-  // Auto-select nearest station when location loads
   useEffect(() => {
     if (locationLoaded) {
       findNearestStation();
     }
   }, [locationLoaded]);
 
-  // Request Camera & Media Permissions
   const requestCameraPermissions = async () => {
     const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
     const mediaLibraryStatus =
@@ -204,7 +253,6 @@ export default function IncidentDetails() {
     return true;
   };
 
-  // Upload Handlers
   const handlePhotoUpload = async (fromCamera = false) => {
     if (attachments.photos.length >= MAX_ATTACHMENTS) {
       Alert.alert("Limit Reached", "You can upload a maximum of 5 photos.");
@@ -283,7 +331,6 @@ export default function IncidentDetails() {
     }
   };
 
-  // Show Upload Options
   const showUploadOptions = (type) => {
     const buttons = [];
 
@@ -325,38 +372,110 @@ export default function IncidentDetails() {
     );
   };
 
-  const handleNext = () => {
+  const handleSubmit = async () => {
+    // Validation
     if (!incidentType || !date || !time || !description) {
-      alert("Please fill out all fields before proceeding.");
+      Alert.alert("Error", "Please fill out all required fields.");
       return;
     }
     if (!selectedStation) {
-      alert("Please select a police station before proceeding.");
+      Alert.alert("Error", "Please select a police station.");
+      return;
+    }
+    if (description.length < 10) {
+      Alert.alert("Error", "Description must be at least 10 characters.");
       return;
     }
 
-    router.push({
-      pathname: "/submitincident",
-      params: {
-        incidentType,
-        date,
-        time,
-        description,
-        latitude: incidentLocation.latitude,
-        longitude: incidentLocation.longitude,
-        stationName: selectedStation.name,
-        stationAddress: selectedStation.address,
-        stationDistance,
-        stationTime,
-      },
-    });
+    setSubmitting(true);
+    try {
+      // Get auth token
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        Alert.alert("Error", "Please login first");
+        return;
+      }
+
+      // Prepare blotter data matching your Blotter model
+      const blotterData = {
+        reporter: {
+          fullName: reporterName,
+          contactNumber: reporterContact,
+          address: reporterAddress,
+        },
+        incident: {
+          type: incidentType,
+          date: date,
+          time: time,
+          location: {
+            latitude: incidentLocation.latitude,
+            longitude: incidentLocation.longitude,
+            address: reporterAddress, // or get from reverse geocoding
+          },
+          description: description,
+        },
+        attachments: {
+          photos: attachments.photos,
+          videos: attachments.videos,
+          documents: attachments.documents.map((doc) => ({
+            name: doc.name,
+            url: doc.uri,
+          })),
+        },
+        policeStation: {
+          id: selectedStation.id,
+          name: selectedStation.name,
+          address: selectedStation.address,
+          latitude: selectedStation.latitude,
+          longitude: selectedStation.longitude,
+          distance: parseFloat(stationDistance),
+          estimatedTime: stationTime,
+        },
+      };
+
+      const response = await fetch(`${API_BASE}/api/blotter/submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(blotterData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to submit blotter");
+      }
+
+      // Navigate to confirmation with the saved blotter data
+      router.push({
+        pathname: "/submitincident",
+        params: {
+          blotterNumber: data.blotter.blotterNumber,
+          incidentType: incidentType,
+          date: date,
+          time: time,
+          description: description,
+          location: reporterAddress,
+          stationName: selectedStation.name,
+          reporterName: reporterName,
+          reporterContact: reporterContact,
+          status: data.blotter.status,
+        },
+      });
+    } catch (error) {
+      console.error("Submit error:", error);
+      Alert.alert("Error", error.message || "Failed to submit blotter");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["left", "right"]}>
       <GradientHeader title="File Blotter" onBack={() => router.back()} />
       <ScrollView className="px-4 py-6 bg-white">
-        {/* Title */}
         <View className="items-center pt-4 pb-6">
           <Text className="text-blue-900 text-3xl font-bold">
             Incident Details
@@ -391,21 +510,40 @@ export default function IncidentDetails() {
 
         {/* Date & Time */}
         <Text className="mb-2 text-gray-700 font-medium">Date of Incident</Text>
-        <TextInput
-          placeholder="e.g. 15-10-2025"
-          value={date}
-          onChangeText={setDate}
+        <TouchableOpacity
+          onPress={() => setShowDatePicker(true)}
           className="border border-gray-300 rounded-lg px-3 py-2 mb-4 bg-white"
-        />
-        <Text className="mb-2 text-gray-700 font-medium">Time of Incident</Text>
-        <TextInput
-          placeholder="e.g. 03:30 PM"
-          value={time}
-          onChangeText={setTime}
-          className="border border-gray-300 rounded-lg px-3 py-2 mb-4 bg-white"
-        />
+        >
+          <Text className="text-gray-900">{date || "Pick a date"}</Text>
+        </TouchableOpacity>
 
-        {/* Location Map - Incident Location */}
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+          />
+        )}
+
+        {/* Time */}
+        <Text className="mb-2 text-gray-700 font-medium">Time of Incident</Text>
+        <TouchableOpacity
+          onPress={() => setShowTimePicker(true)}
+          className="border border-gray-300 rounded-lg px-3 py-2 mb-4 bg-white"
+        >
+          <Text className="text-gray-900">{time || "Pick a time"}</Text>
+        </TouchableOpacity>
+
+        {showTimePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="time"
+            display="default"
+            onChange={handleTimeChange}
+          />
+        )}
+        {/* Location Map */}
         <Text className="mb-2 text-gray-700 font-medium">
           Incident Location (Drag to adjust)
         </Text>
@@ -432,13 +570,11 @@ export default function IncidentDetails() {
             showsUserLocation
             showsMyLocationButton
           >
-            {/* Draggable Incident Location Marker */}
             <Marker
               coordinate={incidentLocation}
               draggable
               onDragEnd={(e) => {
                 setIncidentLocation(e.nativeEvent.coordinate);
-                // Auto-update nearest station when incident location changes
                 setTimeout(() => findNearestStation(), 100);
               }}
               title="Incident Location"
@@ -454,9 +590,9 @@ export default function IncidentDetails() {
         </View>
 
         {/* Description */}
-        <Text className="mb-2 text-gray-700 font-medium">Description</Text>
+        <Text className="mb-2 text-gray-700 font-medium">Description *</Text>
         <TextInput
-          placeholder="Enter detailed description"
+          placeholder="Enter detailed description (minimum 10 characters)"
           value={description}
           onChangeText={setDescription}
           multiline
@@ -465,7 +601,7 @@ export default function IncidentDetails() {
 
         {/* Attachments Section */}
         <Text className="mb-2 text-gray-700 font-medium">
-          Attachments / Evidence (3-5)
+          Attachments / Evidence (Optional)
         </Text>
         <View className="flex-row justify-between mb-4">
           <TouchableOpacity
@@ -488,7 +624,7 @@ export default function IncidentDetails() {
           </TouchableOpacity>
         </View>
 
-        {/* Uploaded Attachments */}
+        {/* Uploaded Attachments Display */}
         {attachments.photos.length > 0 && (
           <View className="mb-4">
             <Text className="text-gray-600 font-medium mb-2">Photos</Text>
@@ -604,7 +740,6 @@ export default function IncidentDetails() {
             showsUserLocation
             showsMyLocationButton
           >
-            {/* User Location Marker (if available) */}
             {userLocation && (
               <Marker
                 coordinate={userLocation}
@@ -619,7 +754,6 @@ export default function IncidentDetails() {
               </Marker>
             )}
 
-            {/* Incident Location Marker */}
             <Marker
               coordinate={incidentLocation}
               title="Incident Location"
@@ -632,7 +766,6 @@ export default function IncidentDetails() {
               </View>
             </Marker>
 
-            {/* Police Station Markers */}
             {policeStations.map((station) => (
               <Marker
                 key={station.id}
@@ -680,13 +813,14 @@ export default function IncidentDetails() {
           </Text>
         </TouchableOpacity>
 
-        {/* Submit */}
+        {/* Submit Button */}
         <TouchableOpacity
-          onPress={handleNext}
+          onPress={handleSubmit}
+          disabled={submitting}
           className="bg-indigo-600 rounded-xl py-4 mb-6"
         >
           <Text className="text-white text-center font-semibold text-lg">
-            Submit
+            {submitting ? "Submitting..." : "Submit Blotter"}
           </Text>
         </TouchableOpacity>
       </ScrollView>

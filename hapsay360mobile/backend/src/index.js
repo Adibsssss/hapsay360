@@ -4,6 +4,8 @@ import "dotenv/config.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import applicationRoutes from "./routes/application.js";
+import blotterRoutes from "./routes/blotterRoutes.js";
+
 import { connectDB } from "./lib/db.js";
 
 const app = express();
@@ -14,6 +16,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/application", applicationRoutes);
+app.use("/api/blotter", blotterRoutes);
 
 const start = async () => {
   try {

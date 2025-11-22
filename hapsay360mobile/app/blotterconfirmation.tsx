@@ -8,6 +8,10 @@ import GradientHeader from "./components/GradientHeader";
 export default function BlotterConfirmation() {
   const router = useRouter();
 
+  // These would typically come from route params or props
+  const blotterNumber = "BLT-202511-000001";
+  const status = "Pending";
+
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["left", "right"]}>
       <StatusBar barStyle="light-content" />
@@ -20,46 +24,38 @@ export default function BlotterConfirmation() {
 
       {/* Main Content */}
       <View className="flex-1 bg-white rounded-t-3xl px-7 py-12">
-        {/* Success Icon */}
-        <View className="w-24 h-24 bg-green-600 rounded-full items-center justify-center self-center mb-8 shadow-md">
-          <Check color="white" size={44} strokeWidth={3} />
+        {/* Success Message */}
+        <View className="items-center mb-6">
+          <View className="w-20 h-20 bg-green-500 rounded-full items-center justify-center mb-4">
+            <Text className="text-white text-4xl">✓</Text>
+          </View>
+          <Text className="text-2xl font-bold text-gray-900 mb-2">
+            Blotter Submitted Successfully!
+          </Text>
+          <Text className="text-gray-600 text-center">
+            Your blotter has been recorded and will be reviewed by the
+            authorities.
+          </Text>
         </View>
 
-        {/* Success Message */}
-        <Text className="text-2xl font-bold text-gray-900 text-center mb-3 leading-snug">
-          Success! Your blotter{"\n"}has been submitted!
-        </Text>
-        <Text className="text-sm text-gray-600 text-center mb-12">
-          The police station will review your report. You will be contacted for
-          any updates.
-        </Text>
+        {/* Blotter Number Card */}
+        <View className="bg-indigo-50 rounded-2xl p-6 mb-6 border-2 border-indigo-200">
+          <Text className="text-gray-600 text-sm text-center mb-2">
+            Your Blotter Number
+          </Text>
+          <Text className="text-3xl font-bold text-indigo-600 text-center mb-2">
+            {blotterNumber || "BLT-202511-000001"}
+          </Text>
+          <Text className="text-gray-500 text-xs text-center">
+            Save this number to track your blotter status
+          </Text>
+        </View>
 
-        {/* Blotter Submission Details */}
-        <View className="space-y-6 mb-14">
-          <View className="flex-row items-center mb-2">
-            <Text className="text-sm text-gray-700 flex-1 ml-4">
-              Submission Date
-            </Text>
-            <Text className="text-sm text-gray-900 font-medium">
-              15 Oct 2025
-            </Text>
-          </View>
-
-          <View className="flex-row items-center mb-2">
-            <Text className="text-sm text-gray-700 flex-1 ml-4">
-              Police Station
-            </Text>
-            <Text className="text-sm text-gray-900 font-medium">
-              PS 7 Bulua, CDO
-            </Text>
-          </View>
-
-          <View className="flex-row items-center">
-            <Text className="text-sm text-gray-700 flex-1 ml-4">
-              Reference Number
-            </Text>
-            <Text className="text-sm text-gray-900 font-medium">
-              BLT-102345
+        {/* Status Badge */}
+        <View className="items-center mb-6">
+          <View className="bg-yellow-100 border border-yellow-300 rounded-full px-6 py-2">
+            <Text className="text-yellow-800 font-semibold">
+              Status: {status || "Pending"}
             </Text>
           </View>
         </View>
@@ -79,7 +75,7 @@ export default function BlotterConfirmation() {
           <TouchableOpacity
             className="w-full bg-indigo-50 py-4 rounded-xl items-center border border-indigo-200"
             activeOpacity={0.8}
-            onPress={() => router.push("/submitincident")}
+            onPress={() => router.back()}
           >
             <Text className="text-indigo-700 font-semibold text-base">
               View submitted blotters
