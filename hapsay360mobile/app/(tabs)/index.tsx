@@ -155,7 +155,7 @@ export default function HomeScreen() {
           <Pressable
             className="rounded-2xl w-[48%] p-6 items-center"
             style={{ backgroundColor: isDark ? "#2a3166" : "#DEEBF8" }}
-            onPress={() => router.push("/trackactivity")}
+            onPress={() => router.push("/trackrequests")}
           >
             <View
               className="w-16 h-16 rounded-2xl items-center justify-center mb-3 shadow-sm"

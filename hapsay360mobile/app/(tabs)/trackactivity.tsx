@@ -18,6 +18,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { X, Shield, Phone, MessageSquare } from "lucide-react-native";
 import GradientHeader from "../components/GradientHeader";
 
+// STATIC NI WALA NI PULOS
+
+// Track request akong gi gamit na file.
+
 export default function TrackActivity() {
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);

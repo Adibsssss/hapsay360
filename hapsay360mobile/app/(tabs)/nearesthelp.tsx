@@ -46,98 +46,14 @@ const NearestHelpScreen = () => {
   const [estimatedTime, setEstimatedTime] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const slideAnim = useRef(new Animated.Value(height)).current;
+  const [routeCoordinates, setRouteCoordinates] = useState([]);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const bgColor = isDark ? "#1a1f4d" : "#ffffff";
 
-  const policeStations = [
-    {
-      id: 1,
-      name: "Police Station 1 (Centro)",
-      latitude: 8.4829,
-      longitude: 124.6503,
-      address: "Corrales Avenue, Centro, Cagayan de Oro City",
-      phone: "(088) 858-1403",
-      landline: "xxx-xxx-xxx",
-      mobile: "09xxxxxxxxx",
-      email: "ps1@gmail.com",
-      officer: "P/Capt. Juan Dela Cruz",
-    },
-    {
-      id: 2,
-      name: "Police Station 2 (Carmen)",
-      latitude: 8.4947,
-      longitude: 124.6419,
-      address: "Carmen, Cagayan de Oro City",
-      phone: "(088) 858-1404",
-      landline: "xxx-xxx-xxx",
-      mobile: "09xxxxxxxxx",
-      email: "ps2@gmail.com",
-      officer: "P/Capt. Maria Santos",
-    },
-    {
-      id: 3,
-      name: "Police Station 3 (Lapasan)",
-      latitude: 8.5089,
-      longitude: 124.6247,
-      address: "Lapasan, Cagayan de Oro City",
-      phone: "(088) 858-1405",
-      landline: "xxx-xxx-xxx",
-      mobile: "09xxxxxxxxx",
-      email: "ps3@gmail.com",
-      officer: "P/Capt. Pedro Reyes",
-    },
-    {
-      id: 4,
-      name: "Police Station 4 (Nazareth)",
-      latitude: 8.4589,
-      longitude: 124.6278,
-      address: "Nazareth, Cagayan de Oro City",
-      phone: "(088) 858-1406",
-      landline: "xxx-xxx-xxx",
-      mobile: "09xxxxxxxxx",
-      email: "ps4@gmail.com",
-      officer: "P/Capt. Rosa Garcia",
-    },
-    {
-      id: 5,
-      name: "Police Station 5 (Gusa)",
-      latitude: 8.4831,
-      longitude: 124.6108,
-      address: "Gusa, Cagayan de Oro City",
-      phone: "(088) 858-1407",
-      landline: "xxx-xxx-xxx",
-      mobile: "09xxxxxxxxx",
-      email: "ps5@gmail.com",
-      officer: "P/Capt. Carlos Mendoza",
-    },
-    {
-      id: 6,
-      name: "Police Station 6 (Kauswagan)",
-      latitude: 8.4503,
-      longitude: 124.6186,
-      address: "Kauswagan, Cagayan de Oro City",
-      phone: "(088) 858-1408",
-      landline: "xxx-xxx-xxx",
-      mobile: "09xxxxxxxxx",
-      email: "ps6@gmail.com",
-      officer: "P/Capt. Ana Lopez",
-    },
-    {
-      id: 7,
-      name: "Police Station 7 (Bulua)",
-      latitude: 8.517,
-      longitude: 124.647,
-      address: "Bulua, Cagayan de Oro City",
-      phone: "(088) 858-1409",
-      landline: "xxx-xxx-xxx",
-      mobile: "09xxxxxxxxx",
-      email: "ps7@gmail.com",
-      officer: "P/Capt. Juan Dela Cruz",
-    },
-  ];
-
-  const [nearestHelp, setNearestHelp] = useState(policeStations[6]);
+  const [policeStations, setPoliceStations] = useState([]);
+  const [nearestHelp, setNearestHelp] = useState(null);
+  const [fetchingStations, setFetchingStations] = useState(false);
 
   useEffect(() => {
     getCurrentLocation();
@@ -145,9 +61,21 @@ const NearestHelpScreen = () => {
 
   useEffect(() => {
     if (currentLocation) {
-      findNearestStation();
+      fetchNearbyPoliceStations();
     }
   }, [currentLocation]);
+
+  useEffect(() => {
+    if (currentLocation && policeStations.length > 0) {
+      findNearestStation();
+    }
+  }, [currentLocation, policeStations]);
+
+  useEffect(() => {
+    if (currentLocation && nearestHelp) {
+      fetchRoute();
+    }
+  }, [nearestHelp]);
 
   useEffect(() => {
     if (showDetailsModal) {
@@ -165,6 +93,120 @@ const NearestHelpScreen = () => {
       }).start();
     }
   }, [showDetailsModal]);
+
+  const fetchNearbyPoliceStations = async () => {
+    if (!currentLocation) return;
+
+    setFetchingStations(true);
+    const { latitude, longitude } = currentLocation;
+    const radius = 10000; // 10km radius
+
+    // Overpass API query
+    const query = `
+      [out:json][timeout:25];
+      (
+        node["amenity"="police"](around:${radius},${latitude},${longitude});
+        way["amenity"="police"](around:${radius},${latitude},${longitude});
+        relation["amenity"="police"](around:${radius},${latitude},${longitude});
+      );
+      out body;
+      >;
+      out skel qt;
+    `;
+
+    try {
+      const response = await fetch("https://overpass-api.de/api/interpreter", {
+        method: "POST",
+        body: query,
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      });
+
+      const data = await response.json();
+
+      // Process the results
+      const stations = data.elements
+        .filter((element) => element.lat && element.lon)
+        .map((element, index) => {
+          const tags = element.tags || {};
+          return {
+            id: element.id || index,
+            name: tags.name || `Police Station ${index + 1}`,
+            latitude: element.lat,
+            longitude: element.lon,
+            address: formatAddress(tags),
+            phone: tags.phone || tags["contact:phone"] || "N/A",
+            landline: tags.phone || "N/A",
+            mobile: tags["contact:mobile"] || "N/A",
+            email: tags.email || tags["contact:email"] || "N/A",
+            officer: "Officer Information Not Available",
+            website: tags.website || tags["contact:website"] || null,
+            opening_hours: tags.opening_hours || "24/7",
+          };
+        });
+
+      console.log(`Found ${stations.length} police stations nearby`);
+      setPoliceStations(stations);
+      setFetchingStations(false);
+
+      if (stations.length === 0) {
+        Alert.alert(
+          "No Police Stations Found",
+          "No police stations found within 10km. Try increasing the search radius."
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching police stations:", error);
+      Alert.alert(
+        "Error",
+        "Could not fetch nearby police stations. Please try again."
+      );
+      setFetchingStations(false);
+    }
+  };
+
+  const fetchRoute = async () => {
+    if (!currentLocation || !nearestHelp) return;
+
+    try {
+      // Using OSRM (free, no API key needed)
+      const url = `https://router.project-osrm.org/route/v1/driving/${currentLocation.longitude},${currentLocation.latitude};${nearestHelp.longitude},${nearestHelp.latitude}?overview=full&geometries=geojson`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.routes && data.routes.length > 0) {
+        const route = data.routes[0];
+
+        // Convert coordinates from [lng, lat] to {latitude, longitude}
+        const coords = route.geometry.coordinates.map((coord) => ({
+          latitude: coord[1],
+          longitude: coord[0],
+        }));
+
+        setRouteCoordinates(coords);
+
+        // Update distance and time from actual route
+        setDistance((route.distance / 1000).toFixed(1)); // Convert meters to km
+        setEstimatedTime(Math.round(route.duration / 60)); // Convert seconds to minutes
+      }
+    } catch (error) {
+      console.error("Error fetching route:", error);
+      // Fallback to straight line
+      setRouteCoordinates([currentLocation, nearestHelp]);
+    }
+  };
+
+  const formatAddress = (tags) => {
+    const parts = [];
+    if (tags["addr:street"]) parts.push(tags["addr:street"]);
+    if (tags["addr:housenumber"]) parts.push(tags["addr:housenumber"]);
+    if (tags["addr:city"]) parts.push(tags["addr:city"]);
+    if (tags["addr:postcode"]) parts.push(tags["addr:postcode"]);
+
+    return parts.length > 0 ? parts.join(", ") : "Address not available";
+  };
 
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371;
@@ -189,7 +231,7 @@ const NearestHelpScreen = () => {
   };
 
   const findNearestStation = () => {
-    if (!currentLocation) return;
+    if (!currentLocation || policeStations.length === 0) return;
 
     let nearest = policeStations[0];
     let minDistance = calculateDistance(
@@ -251,12 +293,20 @@ const NearestHelpScreen = () => {
   };
 
   const handleEmergencyCall = () => {
+    if (!nearestHelp || nearestHelp.phone === "N/A") {
+      Alert.alert(
+        "No Phone Number",
+        "No phone number available for this station"
+      );
+      return;
+    }
+
     Alert.alert("Emergency Call", `Call ${nearestHelp.name} now?`, [
       { text: "Cancel", style: "cancel" },
       {
         text: "Call Now",
         onPress: () => {
-          const phoneNumber = nearestHelp.phone.replace(/[^0-9]/g, "");
+          const phoneNumber = nearestHelp.phone.replace(/[^0-9+]/g, "");
           Linking.openURL(`tel:${phoneNumber}`);
         },
       },
@@ -264,7 +314,15 @@ const NearestHelpScreen = () => {
   };
 
   const handleSendMessage = () => {
-    const phoneNumber = nearestHelp.phone.replace(/[^0-9]/g, "");
+    if (!nearestHelp || nearestHelp.phone === "N/A") {
+      Alert.alert(
+        "No Phone Number",
+        "No phone number available for this station"
+      );
+      return;
+    }
+
+    const phoneNumber = nearestHelp.phone.replace(/[^0-9+]/g, "");
     Linking.openURL(`sms:${phoneNumber}`);
   };
 
@@ -274,6 +332,11 @@ const NearestHelpScreen = () => {
   };
 
   const handleChangeLocation = () => {
+    if (policeStations.length === 0) {
+      Alert.alert("No Stations", "No police stations available");
+      return;
+    }
+
     Alert.alert(
       "Select Police Station",
       "Choose a different police station",
@@ -304,21 +367,26 @@ const NearestHelpScreen = () => {
     setShowDetailsModal(false);
   };
 
-  if (loading || !currentLocation) {
+  if (loading || !currentLocation || fetchingStations || !nearestHelp) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: bgColor }}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-        <View className="flex-1 items-center justify-center">
+        <View className="flex-1 items-center justify-center px-6">
           <ActivityIndicator size="large" color="#DC2626" />
-          <Text className="mt-4 text-gray-600 text-base">
-            Finding nearest help...
+          <Text className="mt-4 text-gray-600 text-base text-center">
+            {fetchingStations
+              ? "Searching for nearby police stations..."
+              : "Finding nearest help..."}
           </Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  const routeCoordinates = [currentLocation, nearestHelp];
+  const routeCoordinatesDisplay =
+    routeCoordinates.length > 0
+      ? routeCoordinates
+      : [currentLocation, nearestHelp];
 
   return (
     <SafeAreaView
@@ -354,20 +422,32 @@ const NearestHelpScreen = () => {
               </View>
             </Marker>
 
-            <Marker
-              coordinate={nearestHelp}
-              title={nearestHelp.name}
-              description={nearestHelp.address}
-            >
-              <View className="items-center">
-                <View className="bg-blue-900 w-14 h-14 rounded-full items-center justify-center shadow-lg border-4 border-white">
-                  <Shield size={24} color="white" />
+            {policeStations.map((station) => (
+              <Marker
+                key={station.id}
+                coordinate={{
+                  latitude: station.latitude,
+                  longitude: station.longitude,
+                }}
+                title={station.name}
+                description={station.address}
+              >
+                <View className="items-center">
+                  <View
+                    className={`${
+                      nearestHelp.id === station.id
+                        ? "bg-blue-900"
+                        : "bg-gray-600"
+                    } w-14 h-14 rounded-full items-center justify-center shadow-lg border-4 border-white`}
+                  >
+                    <Shield size={24} color="white" />
+                  </View>
                 </View>
-              </View>
-            </Marker>
+              </Marker>
+            ))}
 
             <Polyline
-              coordinates={routeCoordinates}
+              coordinates={routeCoordinatesDisplay}
               strokeColor="#2563EB"
               strokeWidth={5}
             />
@@ -452,7 +532,7 @@ const NearestHelpScreen = () => {
             activeOpacity={0.7}
           >
             <Text className="text-blue-600 text-center font-bold text-base">
-              Change Station
+              Change Station ({policeStations.length} nearby)
             </Text>
           </TouchableOpacity>
 
@@ -586,14 +666,18 @@ const NearestHelpScreen = () => {
                           {nearestHelp.address}
                         </Text>
                         <Text className="text-sm text-gray-700 mt-1">
-                          Landline: {nearestHelp.landline}
+                          Phone: {nearestHelp.phone}
                         </Text>
-                        <Text className="text-sm text-gray-700">
-                          Mobile: {nearestHelp.mobile}
-                        </Text>
-                        <Text className="text-sm text-gray-700">
-                          Email: {nearestHelp.email}
-                        </Text>
+                        {nearestHelp.email !== "N/A" && (
+                          <Text className="text-sm text-gray-700">
+                            Email: {nearestHelp.email}
+                          </Text>
+                        )}
+                        {nearestHelp.opening_hours && (
+                          <Text className="text-sm text-gray-700">
+                            Hours: {nearestHelp.opening_hours}
+                          </Text>
+                        )}
                       </View>
 
                       <View>

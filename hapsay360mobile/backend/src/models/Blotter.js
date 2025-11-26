@@ -160,7 +160,6 @@ blotterSchema.pre("save", async function (next) {
 
 // Indexes for faster queries
 blotterSchema.index({ status: 1, created_at: -1 });
-blotterSchema.index({ blotterNumber: 1 });
 blotterSchema.index({ userId: 1 });
 blotterSchema.index({ "reporter.contactNumber": 1 });
 
