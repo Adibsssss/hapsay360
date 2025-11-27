@@ -47,7 +47,7 @@ export default function BookPoliceClearanceScreen() {
         }
 
         const res = await fetch(
-          "http://192.168.1.48:3000/api/application/get",
+          "http://192.168.0.101:3000/api/application/my-application",
           {
             method: "GET",
             headers: {
