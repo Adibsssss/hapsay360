@@ -1,26 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
   Modal,
-  Pressable,
   StatusBar,
   Image,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { Home, FileText, User } from "lucide-react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import GradientHeader from "./components/GradientHeader";
 import BottomNav from "./components/bottomnav";
 
+interface Appointment {
+  _id: string;
+  purpose: string;
+  policeStation: string;
+  appointmentDate: string;
+  timeSlot: string;
+  status: string;
+  paymentStatus: string;
+  amount: number;
+}
+
 export default function PoliceClearancePayment() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const appointmentId = params.appointmentId as string;
+  const appointmentDataParam = params.appointmentData as string;
+
+  const API_BASE = "http://192.168.0.100:3000/api";
+
   const [selectedPayment, setSelectedPayment] = useState("mastercard");
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [appointment, setAppointment] = useState<Appointment | null>(null);
 
   const paymentMethods = [
     {
@@ -42,26 +59,145 @@ export default function PoliceClearancePayment() {
     },
   ];
 
+  const getAuthToken = async () => {
+    try {
+      return await AsyncStorage.getItem("authToken");
+    } catch (error) {
+      console.error("Error getting auth token:", error);
+      return null;
+    }
+  };
+
+  // Fetch appointment details
+  const fetchAppointment = async () => {
+    if (!appointmentId) {
+      Alert.alert("Error", "No appointment selected", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const token = await getAuthToken();
+
+      if (!token) {
+        Alert.alert("Error", "Please login again");
+        router.push("/login");
+        return;
+      }
+
+      console.log("[DEBUG] Fetching appointment:", appointmentId);
+      console.log(
+        "[DEBUG] API URL:",
+        `${API_BASE}/appointments/${appointmentId}`
+      );
+
+      const res = await fetch(`${API_BASE}/appointments/${appointmentId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }).catch((fetchError) => {
+        console.error("[DEBUG] Network error:", fetchError);
+        throw new Error(
+          `Network error: Check if backend is running at ${API_BASE}`
+        );
+      });
+
+      console.log("[DEBUG] Response status:", res.status);
+
+      if (!res.ok) {
+        if (res.status === 404) {
+          throw new Error("Appointment not found");
+        }
+        if (res.status === 401) {
+          Alert.alert("Session Expired", "Please login again");
+          router.push("/login");
+          return;
+        }
+        const errText = await res.text();
+        throw new Error(`Server error (${res.status}): ${errText}`);
+      }
+
+      const data = await res.json();
+      console.log("[DEBUG] Appointment data:", data);
+      setAppointment(data.appointment);
+    } catch (err: any) {
+      console.error("[DEBUG] Fetch appointment error:", err);
+      Alert.alert(
+        "Error",
+        `Failed to load appointment details: ${err.message}`,
+        [
+          { text: "Go Back", onPress: () => router.back() },
+          { text: "Retry", onPress: () => fetchAppointment() },
+        ]
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Try to use passed appointment data first (faster, no network call)
+    if (appointmentDataParam) {
+      try {
+        const parsedData = JSON.parse(appointmentDataParam);
+        console.log("[DEBUG] Using passed appointment data:", parsedData);
+        setAppointment(parsedData);
+        setLoading(false);
+      } catch (err) {
+        console.error("[DEBUG] Failed to parse appointment data:", err);
+        // Fall back to fetching
+        fetchAppointment();
+      }
+    } else {
+      // No passed data, fetch from API
+      fetchAppointment();
+    }
+  }, []);
+
   const handleNext = () => {
+    if (!appointment) {
+      Alert.alert("Error", "Appointment data not loaded");
+      return;
+    }
     setShowConfirmation(true);
   };
 
   const handleConfirm = () => {
     setShowConfirmation(false);
-    router.push("/policeclearancesummary");
+    // Navigate to summary with all data
+    router.push({
+      pathname: "/policeclearancesummary",
+      params: {
+        appointmentId,
+        paymentMethod: selectedPayment,
+      },
+    });
   };
+
+  if (loading || !appointment) {
+    return (
+      <SafeAreaView className="flex-1 bg-white" edges={["left", "right"]}>
+        <GradientHeader title="Book Appointment" onBack={() => router.back()} />
+        <View className="flex-1 justify-center items-center">
+          <Text className="text-gray-500">Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["left", "right"]}>
       <StatusBar barStyle="light-content" />
 
-      {/* Reusable Gradient Header */}
       <GradientHeader title="Book Appointment" onBack={() => router.back()} />
 
       {/* Stepper */}
       <View className="bg-white px-6 py-5">
         <View className="flex-row items-center justify-between">
-          {/* Step 1 */}
           <View className="items-center" style={{ width: 70 }}>
             <View className="w-10 h-10 rounded-full bg-gray-300 items-center justify-center mb-2">
               <Text className="text-white font-bold">1</Text>
@@ -69,16 +205,14 @@ export default function PoliceClearancePayment() {
             <Text className="text-xs text-gray-500">Book date</Text>
           </View>
 
-          {/* Line between Step 1 → 2 (highlighted) */}
           <View
             className="flex-1 h-px mx-2"
             style={{
               marginTop: -20,
-              backgroundColor: "#4F46E5", // Indigo line here
+              backgroundColor: "#4F46E5",
             }}
           />
 
-          {/* Step 2 */}
           <View className="items-center" style={{ width: 70 }}>
             <View className="w-10 h-10 rounded-full bg-indigo-600 items-center justify-center mb-2">
               <Text className="text-white font-bold">2</Text>
@@ -86,16 +220,14 @@ export default function PoliceClearancePayment() {
             <Text className="text-xs text-gray-900 font-semibold">Payment</Text>
           </View>
 
-          {/* Line between Step 2 → 3 (gray) */}
           <View
             className="flex-1 h-px mx-2"
             style={{
               marginTop: -20,
-              backgroundColor: "#D1D5DB", // gray line
+              backgroundColor: "#D1D5DB",
             }}
           />
 
-          {/* Step 3 */}
           <View className="items-center" style={{ width: 70 }}>
             <View className="w-10 h-10 rounded-full bg-gray-300 items-center justify-center mb-2">
               <Text className="text-white font-bold">3</Text>
@@ -143,6 +275,26 @@ export default function PoliceClearancePayment() {
           ))}
         </View>
 
+        {/* Appointment Summary Preview */}
+        <View className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+          <Text className="text-gray-700 font-semibold mb-2">
+            Appointment Summary
+          </Text>
+          <Text className="text-gray-600 text-sm mb-1">
+            {appointment.purpose}
+          </Text>
+          <Text className="text-gray-600 text-sm mb-1">
+            {appointment.policeStation}
+          </Text>
+          <Text className="text-gray-600 text-sm mb-2">
+            {new Date(appointment.appointmentDate).toLocaleDateString()} •{" "}
+            {appointment.timeSlot}
+          </Text>
+          <Text className="text-gray-900 font-bold text-lg">
+            ₱{appointment.amount}
+          </Text>
+        </View>
+
         {/* Next Button */}
         <TouchableOpacity
           className="bg-indigo-600 rounded-xl py-4 items-center mt-10 mb-8"
@@ -153,7 +305,6 @@ export default function PoliceClearancePayment() {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Bottom Navigation */}
       <BottomNav activeRoute="/(tabs)/clearance" />
 
       {/* Confirmation Modal */}
