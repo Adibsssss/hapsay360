@@ -31,8 +31,9 @@ export default function PoliceClearanceSummary() {
   const params = useLocalSearchParams();
   const appointmentId = params.appointmentId as string;
   const paymentMethod = params.paymentMethod as string;
+  const appointmentDataParam = params.appointmentData as string;
 
-  const API_BASE = "http://192.168.0.100:3000/api";
+  const API_BASE = "http://192.168.0.101:3000/api";
 
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -104,53 +105,64 @@ export default function PoliceClearanceSummary() {
   };
 
   useEffect(() => {
-    fetchAppointment();
+    if (appointmentDataParam) {
+      try {
+        const parsedData = JSON.parse(appointmentDataParam);
+        setAppointment(parsedData);
+      } catch (err) {
+        console.error("Failed to parse appointmentDataParam", err);
+        fetchAppointment();
+      }
+    } else {
+      fetchAppointment();
+    }
   }, []);
 
   const handleSaveAppointment = async () => {
-    if (!appointment) {
-      Alert.alert("Error", "Appointment data not loaded");
+    if (!appointment || !appointment._id) {
+      Alert.alert("Error", "Appointment not loaded correctly");
       return;
     }
 
     try {
       setSaving(true);
       const token = await getAuthToken();
-
       if (!token) {
         Alert.alert("Error", "Please login again");
         router.push("/login");
         return;
       }
 
-      const res = await fetch(`${API_BASE}/appointments/${appointmentId}`, {
+      const res = await fetch(`${API_BASE}/clearance/${appointment._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          paymentStatus: "paid",
           status: "confirmed",
+          paymentStatus: "paid",
+          payment: { amount: appointment.amount },
         }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || "Failed to update appointment");
+        throw new Error(data.message || "Failed to update clearance");
       }
 
+      // Navigate to confirmation page
       router.push({
         pathname: "/policeclearanceconfirmation",
         params: {
-          appointmentId,
           policeStation: appointment.policeStation,
           amount: appointment.amount.toString(),
         },
       });
     } catch (err: any) {
-      console.error("Save appointment error:", err);
-      Alert.alert("Error", `Failed to save appointment: ${err.message}`);
+      console.error("Save clearance error:", err);
+      Alert.alert("Error", `Failed to save clearance: ${err.message}`);
     } finally {
       setSaving(false);
     }

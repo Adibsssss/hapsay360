@@ -32,11 +32,11 @@ export default function PoliceClearancePayment() {
   const appointmentId = params.appointmentId as string;
   const appointmentDataParam = params.appointmentData as string;
 
-  const API_BASE = "http://192.168.0.100:3000/api";
+  const API_BASE = "http://192.168.0.101:3000/api";
 
   const [selectedPayment, setSelectedPayment] = useState("mastercard");
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // initially true
   const [appointment, setAppointment] = useState<Appointment | null>(null);
 
   const paymentMethods = [
@@ -68,7 +68,6 @@ export default function PoliceClearancePayment() {
     }
   };
 
-  // Fetch appointment details
   const fetchAppointment = async () => {
     if (!appointmentId) {
       Alert.alert("Error", "No appointment selected", [
@@ -80,18 +79,11 @@ export default function PoliceClearancePayment() {
     try {
       setLoading(true);
       const token = await getAuthToken();
-
       if (!token) {
         Alert.alert("Error", "Please login again");
         router.push("/login");
         return;
       }
-
-      console.log("[DEBUG] Fetching appointment:", appointmentId);
-      console.log(
-        "[DEBUG] API URL:",
-        `${API_BASE}/appointments/${appointmentId}`
-      );
 
       const res = await fetch(`${API_BASE}/appointments/${appointmentId}`, {
         method: "GET",
@@ -99,19 +91,10 @@ export default function PoliceClearancePayment() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      }).catch((fetchError) => {
-        console.error("[DEBUG] Network error:", fetchError);
-        throw new Error(
-          `Network error: Check if backend is running at ${API_BASE}`
-        );
       });
 
-      console.log("[DEBUG] Response status:", res.status);
-
       if (!res.ok) {
-        if (res.status === 404) {
-          throw new Error("Appointment not found");
-        }
+        if (res.status === 404) throw new Error("Appointment not found");
         if (res.status === 401) {
           Alert.alert("Session Expired", "Please login again");
           router.push("/login");
@@ -122,38 +105,29 @@ export default function PoliceClearancePayment() {
       }
 
       const data = await res.json();
-      console.log("[DEBUG] Appointment data:", data);
       setAppointment(data.appointment);
     } catch (err: any) {
-      console.error("[DEBUG] Fetch appointment error:", err);
-      Alert.alert(
-        "Error",
-        `Failed to load appointment details: ${err.message}`,
-        [
-          { text: "Go Back", onPress: () => router.back() },
-          { text: "Retry", onPress: () => fetchAppointment() },
-        ]
-      );
+      console.error("Fetch appointment error:", err);
+      Alert.alert("Error", `Failed to load appointment: ${err.message}`, [
+        { text: "Go Back", onPress: () => router.back() },
+        { text: "Retry", onPress: () => fetchAppointment() },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Try to use passed appointment data first (faster, no network call)
     if (appointmentDataParam) {
       try {
         const parsedData = JSON.parse(appointmentDataParam);
-        console.log("[DEBUG] Using passed appointment data:", parsedData);
         setAppointment(parsedData);
         setLoading(false);
       } catch (err) {
-        console.error("[DEBUG] Failed to parse appointment data:", err);
-        // Fall back to fetching
+        console.error("Failed to parse appointment data:", err);
         fetchAppointment();
       }
     } else {
-      // No passed data, fetch from API
       fetchAppointment();
     }
   }, []);
@@ -168,12 +142,12 @@ export default function PoliceClearancePayment() {
 
   const handleConfirm = () => {
     setShowConfirmation(false);
-    // Navigate to summary with all data
     router.push({
       pathname: "/policeclearancesummary",
       params: {
         appointmentId,
         paymentMethod: selectedPayment,
+        appointmentData: JSON.stringify(appointment),
       },
     });
   };
@@ -192,7 +166,6 @@ export default function PoliceClearancePayment() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["left", "right"]}>
       <StatusBar barStyle="light-content" />
-
       <GradientHeader title="Book Appointment" onBack={() => router.back()} />
 
       {/* Stepper */}
@@ -207,10 +180,7 @@ export default function PoliceClearancePayment() {
 
           <View
             className="flex-1 h-px mx-2"
-            style={{
-              marginTop: -20,
-              backgroundColor: "#4F46E5",
-            }}
+            style={{ marginTop: -20, backgroundColor: "#4F46E5" }}
           />
 
           <View className="items-center" style={{ width: 70 }}>
@@ -222,10 +192,7 @@ export default function PoliceClearancePayment() {
 
           <View
             className="flex-1 h-px mx-2"
-            style={{
-              marginTop: -20,
-              backgroundColor: "#D1D5DB",
-            }}
+            style={{ marginTop: -20, backgroundColor: "#D1D5DB" }}
           />
 
           <View className="items-center" style={{ width: 70 }}>

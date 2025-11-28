@@ -34,19 +34,40 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
+
+    const fetchWithTimeout = (url, options, timeout = 10000) => {
+      return Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Network timeout")), timeout)
+        ),
+      ]);
+    };
+
     try {
-      const response = await fetch(`${API_BASE}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      console.log("Sending login request to:", `${API_BASE}/api/auth/login`);
+
+      const response = await fetchWithTimeout(
+        `${API_BASE}/api/auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        },
+        10000
+      ); // 10 seconds timeout
+
+      console.log("Login response status:", response.status);
 
       const data = await response.json();
 
       if (!response.ok) {
+        console.log("Login failed:", data);
         setError(data.message || "Invalid credentials");
         return;
       }
+
+      console.log("Login successful:", data);
 
       // Save token & user
       await AsyncStorage.setItem("authToken", data.token);
@@ -55,7 +76,11 @@ export default function LoginScreen() {
       router.replace("./(tabs)");
     } catch (err) {
       console.error("Login error:", err);
-      setError("Failed to connect to server.");
+      if (err.message === "Network timeout") {
+        setError("Server took too long to respond. Please try again.");
+      } else {
+        setError("Failed to connect to server. Check your network or server.");
+      }
     } finally {
       setLoading(false);
     }
