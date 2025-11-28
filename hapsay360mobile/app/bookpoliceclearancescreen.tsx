@@ -27,12 +27,22 @@ export default function BookPoliceClearanceScreen() {
   const [sex, setSex] = useState("");
   const [address, setAddress] = useState("");
 
-  // Helper to format address
+  // Format address
   const formatAddress = (addr: any) => {
     if (!addr) return "";
     return [addr.houseNo, addr.barangay, addr.city, addr.province]
       .filter(Boolean)
       .join(", ");
+  };
+
+  // Format ISO date to YYYY-MM-DD in local timezone
+  const formatLocalDate = (isoString: string) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
   // Load profile on mount
@@ -66,7 +76,7 @@ export default function BookPoliceClearanceScreen() {
 
           // Set state values
           setEmail(data.profile.address?.email || "");
-          setBirthday(data.profile.personal_info?.birthdate || "");
+          setBirthday(formatLocalDate(data.profile.personal_info?.birthdate));
           setSex(data.profile.personal_info?.sex || "");
           setAddress(formatAddress(data.profile.address));
         }
@@ -87,9 +97,9 @@ export default function BookPoliceClearanceScreen() {
     }
 
     router.push({
-      pathname: "/applicationform", // Path to your ApplicationForm screen
+      pathname: "/applicationform",
       params: {
-        profile: JSON.stringify(profile), // Pass profile as a string
+        profile: JSON.stringify(profile),
       },
     });
   };
