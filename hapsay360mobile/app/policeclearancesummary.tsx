@@ -119,7 +119,7 @@ export default function PoliceClearanceSummary() {
   }, []);
 
   const handleSaveAppointment = async () => {
-    if (!appointment || !appointment._id) {
+    if (!appointment) {
       Alert.alert("Error", "Appointment not loaded correctly");
       return;
     }
@@ -133,23 +133,24 @@ export default function PoliceClearanceSummary() {
         return;
       }
 
-      const res = await fetch(`${API_BASE}/clearance/${appointment._id}`, {
-        method: "PUT",
+      const res = await fetch(`${API_BASE}/clearance/create`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          status: "confirmed",
-          paymentStatus: "paid",
-          payment: { amount: appointment.amount },
+          purpose: appointment.purpose,
+          policeStation: appointment.stationId, // use ID from Booking page
+          appointmentDate: appointment.appointmentDate,
+          timeSlot: appointment.timeSlot,
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Failed to update clearance");
+        throw new Error(data.message || "Failed to create clearance");
       }
 
       // Navigate to confirmation page
@@ -161,7 +162,7 @@ export default function PoliceClearanceSummary() {
         },
       });
     } catch (err: any) {
-      console.error("Save clearance error:", err);
+      console.error("Create clearance error:", err);
       Alert.alert("Error", `Failed to save clearance: ${err.message}`);
     } finally {
       setSaving(false);
