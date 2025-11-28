@@ -1,32 +1,25 @@
 import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StatusBar,
-  Pressable,
-} from "react-native";
+import { View, Text, TouchableOpacity, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
-import {
-  ArrowLeft,
-  Clock,
-  MapPin,
-  CreditCard,
-  Check,
-} from "lucide-react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { Clock, MapPin, CreditCard, Check } from "lucide-react-native";
 import GradientHeader from "./components/GradientHeader";
 
 export default function PoliceClearanceConfirmation() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+
+  const policeStation = (params.policeStation as string) || "PS 7 Bulua, CDO";
+  const amount = (params.amount as string) || "250.00";
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["left", "right"]}>
       <StatusBar barStyle="light-content" />
 
-      {/* Reusable Gradient Header */}
-      <GradientHeader title="Book Appointment" onBack={() => router.back()} />
+      <GradientHeader
+        title="Appointment Confirmed"
+        onBack={() => router.push("/(tabs)")}
+      />
 
       {/* Main Content */}
       <View className="flex-1 bg-white rounded-t-3xl px-7 py-12">
@@ -57,11 +50,14 @@ export default function PoliceClearanceConfirmation() {
 
           <View className="flex-row items-center mb-2">
             <MapPin color="#4b5563" size={20} />
-            <Text className="text-sm text-gray-700 flex-1 ml-4">
-              Police station
-            </Text>
-            <Text className="text-sm text-gray-900 font-medium">
-              PS 7 Bulua, CDO
+            <Text className="text-sm text-gray-700 ml-4">Police station</Text>
+            <Text
+              className="text-sm text-gray-900 font-medium ml-2"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={{ flex: 1, textAlign: "right" }}
+            >
+              {policeStation.split(",")[0]}
             </Text>
           </View>
 
@@ -70,8 +66,20 @@ export default function PoliceClearanceConfirmation() {
             <Text className="text-sm text-gray-700 flex-1 ml-4">
               Amount paid
             </Text>
-            <Text className="text-sm text-gray-900 font-medium">₱250.00</Text>
+            <Text className="text-sm text-gray-900 font-medium">₱{amount}</Text>
           </View>
+        </View>
+
+        {/* Information Box */}
+        <View className="bg-blue-50 p-4 rounded-xl mb-8 border border-blue-200">
+          <Text className="text-blue-900 font-semibold mb-2 text-sm">
+            What's Next?
+          </Text>
+          <Text className="text-blue-800 text-xs leading-5">
+            • Check your email for appointment confirmation{"\n"}• Bring a valid
+            ID on your appointment date{"\n"}• Arrive 15 minutes before your
+            scheduled time{"\n"}• Your clearance will be ready after processing
+          </Text>
         </View>
 
         {/* Buttons */}
@@ -89,10 +97,10 @@ export default function PoliceClearanceConfirmation() {
           <TouchableOpacity
             className="w-full bg-indigo-50 py-4 rounded-xl items-center border border-indigo-200"
             activeOpacity={0.8}
-            onPress={() => router.push("/bookpoliceclearancescreen")}
+            onPress={() => router.push("/myappointments")}
           >
             <Text className="text-indigo-700 font-semibold text-base">
-              Check appointments
+              View my appointments
             </Text>
           </TouchableOpacity>
         </View>

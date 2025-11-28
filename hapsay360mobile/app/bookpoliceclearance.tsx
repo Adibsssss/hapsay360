@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,10 +7,12 @@ import {
   Modal,
   Pressable,
   StatusBar,
+  Alert,
 } from "react-native";
-import { useRouter, usePathname } from "expo-router";
+import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronDown } from "lucide-react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import BottomNav from "./components/bottomnav";
 import GradientHeader from "./components/GradientHeader";
 
@@ -27,24 +29,16 @@ const purposes = [
   "Others",
 ];
 
-const policeStations = [
-  "PS 1 Balut, Cagayan de Oro City",
-  "PS 2 Carmen, Cagayan de Oro City",
-  "PS 3 Gusa, Cagayan de Oro City",
-  "PS 4 Lapasan, Cagayan de Oro City",
-  "PS 5 Macasandig, Cagayan de Oro City",
-  "PS 6 Puerto, Cagayan de Oro City",
-  "PS 7 Kauswagan, Cagayan de Oro City",
-  "Cagayan de Oro City Police Station",
-];
-
 const today = new Date();
 const dates = Array.from({ length: 9 }, (_, i) => {
   const date = new Date();
   date.setDate(today.getDate() + i);
   return {
     day: date.getDate(),
+    month: date.getMonth(),
+    year: date.getFullYear(),
     label: date.toLocaleDateString("en-US", { weekday: "short" }),
+    fullDate: date,
   };
 });
 
@@ -55,47 +49,160 @@ const timeSlots = {
 
 export default function BookingPoliceClearance() {
   const router = useRouter();
-  const pathname = usePathname();
+  const API_BASE = "http://192.168.0.100:3000/api";
 
+  const [loading, setLoading] = useState(false);
   const [purpose, setPurpose] = useState("");
   const [station, setStation] = useState("");
+  const [policeStations, setPoliceStations] = useState<string[]>([]);
+  const [loadingStations, setLoadingStations] = useState(false);
+
   const [selectedDate, setSelectedDate] = useState(today.getDate());
-  const [selectedTime, setSelectedTime] = useState("1:30");
+  const [selectedTime, setSelectedTime] = useState("1:00");
   const [timeSlot, setTimeSlot] = useState("P.M");
   const [showPurposeDropdown, setShowPurposeDropdown] = useState(false);
   const [showStationDropdown, setShowStationDropdown] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [appointmentId, setAppointmentId] = useState("");
+
+  // Get auth token from AsyncStorage
+  const getAuthToken = async () => {
+    try {
+      return await AsyncStorage.getItem("authToken");
+    } catch (error) {
+      console.error("Error getting auth token:", error);
+      return null;
+    }
+  };
+
+  // Fetch police stations from backend
+  const fetchPoliceStations = async () => {
+    try {
+      setLoadingStations(true);
+      const token = await getAuthToken();
+      const res = await fetch(`${API_BASE}/police-stations`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = await res.json();
+      if (res.ok) {
+        // Map to "Name, Address"
+        setPoliceStations(
+          data.data.map((station: any) => `${station.name}, ${station.address}`)
+        );
+      } else {
+        Alert.alert("Error", data.message || "Failed to fetch police stations");
+      }
+    } catch (err: any) {
+      console.error(err);
+      Alert.alert("Error", "Unable to load police stations");
+    } finally {
+      setLoadingStations(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPoliceStations();
+  }, []);
 
   const handleProceed = () => {
     if (!purpose || !station) {
-      alert("Please select purpose and police station");
+      Alert.alert(
+        "Validation Error",
+        "Please select purpose and police station"
+      );
       return;
     }
     setShowConfirmation(true);
   };
 
-  const handleConfirm = () => {
-    setShowConfirmation(false);
-    setShowSuccess(true);
+  const handleConfirm = async () => {
+    try {
+      setLoading(true);
+      const token = await getAuthToken();
+      if (!token) {
+        Alert.alert("Error", "Please login again");
+        router.push("/login");
+        return;
+      }
+
+      const selectedDateObj = dates.find((d) => d.day === selectedDate);
+      if (!selectedDateObj) {
+        Alert.alert("Error", "Invalid date selected");
+        return;
+      }
+
+      const appointmentData = {
+        purpose,
+        policeStation: station,
+        appointmentDate: selectedDateObj.fullDate.toISOString(),
+        timeSlot: `${selectedTime} ${timeSlot}`,
+      };
+
+      const res = await fetch(`${API_BASE}/appointments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(appointmentData),
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          Alert.alert("Session Expired", "Please login again");
+          router.push("/login");
+          return;
+        }
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Failed to create appointment");
+      }
+
+      const result = await res.json();
+      setAppointmentId(result.appointment._id);
+      setShowConfirmation(false);
+      setShowSuccess(true);
+    } catch (err: any) {
+      console.error(err);
+      Alert.alert("Error", `Failed to create appointment: ${err.message}`);
+      setShowConfirmation(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoToPayment = () => {
     setShowSuccess(false);
-    router.push("/policeclearancepayment");
+    const selectedDateObj = dates.find((d) => d.day === selectedDate);
+    router.push({
+      pathname: "/policeclearancepayment",
+      params: {
+        appointmentId,
+        appointmentData: JSON.stringify({
+          _id: appointmentId,
+          purpose,
+          policeStation: station,
+          appointmentDate: selectedDateObj?.fullDate.toISOString(),
+          timeSlot: `${selectedTime} ${timeSlot}`,
+          amount: 250,
+        }),
+      },
+    });
   };
+
+  const selectedDateObj = dates.find((d) => d.day === selectedDate);
+  const formattedDate = selectedDateObj
+    ? `${selectedDateObj.month + 1}/${selectedDateObj.day}/${selectedDateObj.year} ${selectedDateObj.label}`
+    : "";
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["left", "right"]}>
       <StatusBar barStyle="light-content" />
-
-      {/* Reusable Gradient Header */}
       <GradientHeader title="Book Appointment" onBack={() => router.back()} />
 
       {/* Stepper */}
       <View className="bg-white px-6 py-5">
         <View className="flex-row items-center justify-between">
-          {/* Step 1 */}
           <View className="items-center" style={{ width: 70 }}>
             <View className="w-10 h-10 rounded-full bg-indigo-600 items-center justify-center mb-2">
               <Text className="text-white font-bold">1</Text>
@@ -113,7 +220,6 @@ export default function BookingPoliceClearance() {
             }}
           />
 
-          {/* Step 2 */}
           <View className="items-center" style={{ width: 70 }}>
             <View className="w-10 h-10 rounded-full bg-gray-300 items-center justify-center mb-2">
               <Text className="text-white font-bold">2</Text>
@@ -129,7 +235,6 @@ export default function BookingPoliceClearance() {
             }}
           />
 
-          {/* Step 3 */}
           <View className="items-center" style={{ width: 70 }}>
             <View className="w-10 h-10 rounded-full bg-gray-300 items-center justify-center mb-2">
               <Text className="text-white font-bold">3</Text>
@@ -176,7 +281,8 @@ export default function BookingPoliceClearance() {
               }
               numberOfLines={1}
             >
-              {station || "Select police station"}
+              {station ||
+                (loadingStations ? "Loading..." : "Select police station")}
             </Text>
             <ChevronDown size={20} color="#9CA3AF" />
           </TouchableOpacity>
@@ -218,7 +324,7 @@ export default function BookingPoliceClearance() {
           </ScrollView>
         </View>
 
-        {/* Time Slots with vertical timeline */}
+        {/* Time Slots */}
         <View className="relative mb-10 flex-row">
           <View
             style={{
@@ -231,7 +337,6 @@ export default function BookingPoliceClearance() {
             }}
           />
 
-          {/* Circles */}
           <View>
             <View
               style={{
@@ -341,14 +446,16 @@ export default function BookingPoliceClearance() {
           <TouchableOpacity
             className="bg-indigo-600 rounded-xl px-12 py-4 shadow-md z-20"
             onPress={handleProceed}
+            disabled={loading}
             activeOpacity={0.8}
           >
-            <Text className="text-white font-semibold text-base">Proceed</Text>
+            <Text className="text-white font-semibold text-base">
+              {loading ? "Processing..." : "Proceed"}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
-      {/* Bottom Navigation */}
       <BottomNav activeRoute="/(tabs)/clearance" />
 
       {/* Purpose Dropdown Modal */}
@@ -376,7 +483,7 @@ export default function BookingPoliceClearance() {
         </Pressable>
       </Modal>
 
-      {/* Station Dropdown Modal */}
+      {/* Police Station Dropdown Modal */}
       <Modal visible={showStationDropdown} transparent animationType="fade">
         <Pressable
           className="flex-1 bg-black/50 justify-center items-center"
@@ -406,7 +513,7 @@ export default function BookingPoliceClearance() {
         visible={showConfirmation}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowConfirmation(false)}
+        onRequestClose={() => !loading && setShowConfirmation(false)}
       >
         <View className="flex-1 justify-end bg-black/40">
           <View className="bg-white rounded-t-3xl p-6 items-center">
@@ -414,9 +521,7 @@ export default function BookingPoliceClearance() {
               Confirm Appointment
             </Text>
             <Text className="text-gray-700 text-center mb-1">
-              {`10/${selectedDate}/2025 ${
-                dates.find((d) => d.day === selectedDate)?.label
-              }`}
+              {formattedDate}
             </Text>
             <Text className="text-indigo-900 text-lg font-bold mb-1">
               {`${selectedTime} ${timeSlot}`}
@@ -425,10 +530,11 @@ export default function BookingPoliceClearance() {
             <TouchableOpacity
               className="bg-indigo-600 px-8 py-3 rounded-xl mb-10"
               onPress={handleConfirm}
+              disabled={loading}
               activeOpacity={0.8}
             >
               <Text className="text-white font-semibold text-base">
-                Confirm and Proceed
+                {loading ? "Confirming..." : "Confirm and Proceed"}
               </Text>
             </TouchableOpacity>
           </View>
