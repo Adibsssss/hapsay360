@@ -245,7 +245,7 @@ export default function ApplicationForm() {
   const [spouseSurname, setSpouseSurname] = useState("");
   const [spouseQualifier, setSpouseQualifier] = useState("");
 
-  // Auth / API
+  // ----------------------- Auth / API -----------------------
   const API_BASE = "http://192.168.0.101:3000/api/application";
 
   const getAuthToken = async () => {
