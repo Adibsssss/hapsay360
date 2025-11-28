@@ -14,7 +14,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import GradientHeader from "./components/GradientHeader";
 
-// Section Title Component
+// ----------------------- Helpers -----------------------
 const SectionTitle = ({
   children,
   color,
@@ -25,22 +25,20 @@ const SectionTitle = ({
   <Text
     style={{
       color,
-      fontSize: 16,
+      fontSize: 18,
       fontWeight: "bold",
-      textAlign: "center",
-      marginVertical: 12,
+      marginTop: 24,
+      marginBottom: 12,
     }}
   >
     {children}
   </Text>
 );
 
-// Divider Component
 const Divider = ({ color }: { color: string }) => (
   <View style={{ height: 1, backgroundColor: color, marginVertical: 16 }} />
 );
 
-// Text Input Field
 const InputField = ({
   label,
   value,
@@ -48,6 +46,7 @@ const InputField = ({
   placeholder,
   color,
   style,
+  keyboardType = "default",
 }: {
   label: string;
   value: string;
@@ -55,27 +54,29 @@ const InputField = ({
   placeholder?: string;
   color: string;
   style?: object;
+  keyboardType?: any;
 }) => (
-  <View style={[{ marginBottom: 16, flex: 1 }, style]}>
-    <Text style={{ color, marginBottom: 4 }}>{label}</Text>
+  <View style={[{ marginBottom: 16 }, style]}>
+    <Text style={{ color, marginBottom: 4, fontSize: 14 }}>{label}</Text>
     <TextInput
       value={value}
       onChangeText={onChangeText}
       placeholder={placeholder}
-      placeholderTextColor={`${color}99`}
+      placeholderTextColor={`${color}66`}
+      keyboardType={keyboardType}
       style={{
         borderWidth: 1,
-        borderColor: color,
+        borderColor: `${color}33`,
         borderRadius: 8,
         paddingHorizontal: 12,
-        paddingVertical: 8,
+        paddingVertical: 10,
         color,
+        backgroundColor: `${color}05`,
       }}
     />
   </View>
 );
 
-// Checkbox Component
 const Checkbox = ({
   label,
   value,
@@ -101,7 +102,6 @@ const Checkbox = ({
   </Pressable>
 );
 
-// Button Component
 const Button = ({
   label,
   onPress,
@@ -131,7 +131,6 @@ const Button = ({
   </Pressable>
 );
 
-// Option Selector Component
 const OptionSelector = ({
   label,
   options,
@@ -146,7 +145,7 @@ const OptionSelector = ({
   color: string;
 }) => (
   <View style={{ marginBottom: 16 }}>
-    <Text style={{ color, marginBottom: 4 }}>{label}</Text>
+    <Text style={{ color, marginBottom: 8, fontSize: 14 }}>{label}</Text>
     {options.map((opt) => (
       <Pressable
         key={opt}
@@ -159,13 +158,12 @@ const OptionSelector = ({
           color={selected === opt ? color : "#999"}
           style={{ marginRight: 8 }}
         />
-        <Text style={{ color }}>{opt}</Text>
+        <Text style={{ color, fontSize: 14 }}>{opt}</Text>
       </Pressable>
     ))}
   </View>
 );
 
-// Helper to format ISO date to MM/DD/YYYY
 const formatDateToLocal = (isoDate: string) => {
   if (!isoDate) return "";
   const d = new Date(isoDate);
@@ -175,20 +173,20 @@ const formatDateToLocal = (isoDate: string) => {
   return `${month}/${day}/${year}`;
 };
 
+// ----------------------- ApplicationForm -----------------------
 export default function ApplicationForm() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const bgColor = isDark ? "#1a1f4d" : "#ffffff";
   const textColor = isDark ? "#ffffff" : "#141545";
-  const dividerColor = isDark ? "#4b5563" : "#d1d5db";
   const buttonColor = isDark ? "#3b82f6" : "#1a1f4d";
 
   const [loading, setLoading] = useState(false);
   const [userLoaded, setUserLoaded] = useState(false);
   const [hasExistingProfile, setHasExistingProfile] = useState(false);
 
-  // ---------------- Personal Info ----------------
+  // ----------------------- Personal Info Fields -----------------------
   const [givenName, setGivenName] = useState("");
   const [middleName, setMiddleName] = useState("");
   const [surname, setSurname] = useState("");
@@ -202,16 +200,19 @@ export default function ApplicationForm() {
   const [birthPlace, setBirthPlace] = useState("");
   const [otherCountry, setOtherCountry] = useState("");
 
-  // ---------------- Contact / Address ----------------
+  // ----------------------- Address Fields -----------------------
   const [houseNo, setHouseNo] = useState("");
-  const [province, setProvince] = useState("");
+  const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [barangay, setBarangay] = useState("");
+  const [province, setProvince] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [country, setCountry] = useState("");
   const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
   const [telephone, setTelephone] = useState("");
 
-  // ---------------- Other Info ----------------
+  // ----------------------- Other Info Fields -----------------------
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
   const [complexion, setComplexion] = useState("");
@@ -221,7 +222,8 @@ export default function ApplicationForm() {
   const [education, setEducation] = useState("");
   const [occupation, setOccupation] = useState("");
 
-  // ---------------- Family ----------------
+  // ----------------------- Family Info Fields -----------------------
+  // Father
   const [fatherGiven, setFatherGiven] = useState("");
   const [fatherMiddle, setFatherMiddle] = useState("");
   const [fatherSurname, setFatherSurname] = useState("");
@@ -229,6 +231,7 @@ export default function ApplicationForm() {
   const [fatherBirthPlace, setFatherBirthPlace] = useState("");
   const [fatherOtherCountry, setFatherOtherCountry] = useState("");
 
+  // Mother
   const [motherGiven, setMotherGiven] = useState("");
   const [motherMiddle, setMotherMiddle] = useState("");
   const [motherSurname, setMotherSurname] = useState("");
@@ -236,135 +239,171 @@ export default function ApplicationForm() {
   const [motherBirthPlace, setMotherBirthPlace] = useState("");
   const [motherOtherCountry, setMotherOtherCountry] = useState("");
 
+  // Spouse
   const [spouseGiven, setSpouseGiven] = useState("");
   const [spouseMiddle, setSpouseMiddle] = useState("");
   const [spouseSurname, setSpouseSurname] = useState("");
   const [spouseQualifier, setSpouseQualifier] = useState("");
 
-  // ---------------- Helper ----------------
+  // ----------------------- Auth / API -----------------------
+  const API_BASE = "http://192.168.0.101:3000/api/application";
+
   const getAuthToken = async () => {
     try {
-      const token = await AsyncStorage.getItem("authToken");
-      return token;
+      return await AsyncStorage.getItem("authToken");
     } catch (error) {
       console.error("Error getting auth token:", error);
       return null;
     }
   };
 
-  // ---------------- Load Profile ----------------
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
-        const token = await getAuthToken();
-        if (!token) {
-          Alert.alert("Error", "Please login again");
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const token = await getAuthToken();
+
+      console.log("[DEBUG] Token exists:", !!token);
+      console.log("[DEBUG] API URL:", `${API_BASE}/my-application`);
+
+      if (!token) {
+        console.log("[DEBUG] No token found, redirecting to login");
+        Alert.alert("Error", "Please login again");
+        router.push("/login");
+        return;
+      }
+
+      console.log("[DEBUG] Making fetch request...");
+
+      const res = await fetch(`${API_BASE}/my-application`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }).catch((fetchError) => {
+        console.error("[DEBUG] Network/Fetch error:", fetchError);
+        throw new Error(
+          `Network error: ${fetchError.message}. Check if backend is running at ${API_BASE}`
+        );
+      });
+
+      console.log("[DEBUG] fetchProfile status:", res.status);
+      console.log("[DEBUG] fetchProfile ok:", res.ok);
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          console.log("[DEBUG] Unauthorized - session expired");
+          Alert.alert("Session Expired", "Please login again");
           router.push("/login");
           return;
         }
 
-        const res = await fetch(
-          "http://192.168.1.48:3000/api/application/get",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
+        // Try to get error text
+        let errText = "Unknown error";
+        try {
+          errText = await res.text();
+          console.error("[DEBUG] Error response:", errText);
+        } catch (e) {
+          console.error("[DEBUG] Could not read error text:", e);
+        }
+
+        throw new Error(`Server error (${res.status}): ${errText}`);
+      }
+
+      const data = await res.json();
+      console.log("[DEBUG] Received data:", JSON.stringify(data, null, 2));
+      const p = data.profile || {};
+
+      // Check if user has existing data
+      if (p.personal_info?.givenName) {
+        setHasExistingProfile(true);
+        Alert.alert(
+          "Profile Found",
+          "Your previously saved information has been loaded. You can edit and update it."
         );
 
-        if (!res.ok) {
-          if (res.status === 401) {
-            Alert.alert("Session Expired", "Please login again");
-            router.push("/login");
-            return;
-          }
-          throw new Error("Failed to fetch profile");
-        }
+        // Load Personal Info
+        setGivenName(p.personal_info?.givenName || "");
+        setMiddleName(p.personal_info?.middleName || "");
+        setSurname(p.personal_info?.surname || "");
+        setQualifier(p.personal_info?.qualifier || "");
+        setSex(p.personal_info?.sex || "");
+        setCivilStatus(p.personal_info?.civilStatus || "");
+        setBirthdate(formatDateToLocal(p.personal_info?.birthdate || ""));
+        setIsPWD(p.personal_info?.isPWD || false);
+        setIsFirstTimeJobSeeker(p.personal_info?.isFirstTimeJobSeeker || false);
+        setNationality(p.personal_info?.nationality || "");
+        setBirthPlace(p.personal_info?.birthPlace || "");
+        setOtherCountry(p.personal_info?.otherCountry || "");
 
-        const data = await res.json();
+        // Load Address
+        setHouseNo(p.address?.houseNo || "");
+        setStreet(p.address?.street || "");
+        setCity(p.address?.city || "");
+        setBarangay(p.address?.barangay || "");
+        setProvince(p.address?.province || "");
+        setPostalCode(p.address?.postalCode || "");
+        setCountry(p.address?.country || "");
+        setEmail(p.address?.email || "");
+        setMobile(p.address?.mobile || "");
+        setTelephone(p.address?.telephone || "");
 
-        if (data.profile && data.profile.personal_info?.givenName) {
-          setHasExistingProfile(true);
-          Alert.alert(
-            "Profile Found",
-            "Your previously saved information has been loaded. You can edit and update it."
-          );
+        // Load Other Info
+        setHeight(p.other_info?.height || "");
+        setWeight(p.other_info?.weight || "");
+        setComplexion(p.other_info?.complexion || "");
+        setIdentifyingMarks(p.other_info?.identifyingMarks || "");
+        setBloodType(p.other_info?.bloodType || "");
+        setReligion(p.other_info?.religion || "");
+        setEducation(p.other_info?.education || "");
+        setOccupation(p.other_info?.occupation || "");
 
-          const p = data.profile;
-          setGivenName(p.personal_info?.givenName || "");
-          setMiddleName(p.personal_info?.middleName || "");
-          setSurname(p.personal_info?.surname || "");
-          setQualifier(p.personal_info?.qualifier || "");
-          setSex(p.personal_info?.sex || "");
-          setCivilStatus(p.personal_info?.civilStatus || "");
-          setBirthdate(formatDateToLocal(p.personal_info?.birthdate || ""));
-          setIsPWD(p.personal_info?.isPWD || false);
-          setIsFirstTimeJobSeeker(
-            p.personal_info?.isFirstTimeJobSeeker || false
-          );
-          setNationality(p.personal_info?.nationality || "");
-          setBirthPlace(p.personal_info?.birthPlace || "");
-          setOtherCountry(p.personal_info?.otherCountry || "");
+        // Load Family Info
+        setFatherGiven(p.family?.father?.given || "");
+        setFatherMiddle(p.family?.father?.middle || "");
+        setFatherSurname(p.family?.father?.surname || "");
+        setFatherQualifier(p.family?.father?.qualifier || "");
+        setFatherBirthPlace(p.family?.father?.birthPlace || "");
+        setFatherOtherCountry(p.family?.father?.otherCountry || "");
 
-          // contact
-          setHouseNo(p.address?.houseNo || "");
-          setProvince(p.address?.province || "");
-          setCity(p.address?.city || "");
-          setBarangay(p.address?.barangay || "");
-          setEmail(p.address?.email || "");
-          setMobile(p.address?.mobile || "");
-          setTelephone(p.address?.telephone || "");
+        setMotherGiven(p.family?.mother?.given || "");
+        setMotherMiddle(p.family?.mother?.middle || "");
+        setMotherSurname(p.family?.mother?.surname || "");
+        setMotherQualifier(p.family?.mother?.qualifier || "");
+        setMotherBirthPlace(p.family?.mother?.birthPlace || "");
+        setMotherOtherCountry(p.family?.mother?.otherCountry || "");
 
-          // other info
-          setHeight(p.other_info?.height || "");
-          setWeight(p.other_info?.weight || "");
-          setComplexion(p.other_info?.complexion || "");
-          setIdentifyingMarks(p.other_info?.identifyingMarks || "");
-          setBloodType(p.other_info?.bloodType || "");
-          setReligion(p.other_info?.religion || "");
-          setEducation(p.other_info?.education || "");
-          setOccupation(p.other_info?.occupation || "");
-
-          // family
-          setFatherGiven(p.family?.father?.given || "");
-          setFatherMiddle(p.family?.father?.middle || "");
-          setFatherSurname(p.family?.father?.surname || "");
-          setFatherQualifier(p.family?.father?.qualifier || "");
-          setFatherBirthPlace(p.family?.father?.birthPlace || "");
-          setFatherOtherCountry(p.family?.father?.otherCountry || "");
-
-          setMotherGiven(p.family?.mother?.given || "");
-          setMotherMiddle(p.family?.mother?.middle || "");
-          setMotherSurname(p.family?.mother?.surname || "");
-          setMotherQualifier(p.family?.mother?.qualifier || "");
-          setMotherBirthPlace(p.family?.mother?.birthPlace || "");
-          setMotherOtherCountry(p.family?.mother?.otherCountry || "");
-
-          setSpouseGiven(p.family?.spouse?.given || "");
-          setSpouseMiddle(p.family?.spouse?.middle || "");
-          setSpouseSurname(p.family?.spouse?.surname || "");
-          setSpouseQualifier(p.family?.spouse?.qualifier || "");
-        } else {
-          setHasExistingProfile(false);
-        }
-
-        setUserLoaded(true);
-      } catch (err: any) {
-        console.error(err);
-        Alert.alert("Error", "Failed to load profile. Please try again.");
-      } finally {
-        setLoading(false);
+        setSpouseGiven(p.family?.spouse?.given || "");
+        setSpouseMiddle(p.family?.spouse?.middle || "");
+        setSpouseSurname(p.family?.spouse?.surname || "");
+        setSpouseQualifier(p.family?.spouse?.qualifier || "");
+      } else {
+        setHasExistingProfile(false);
       }
-    };
 
-    fetchProfile();
-  }, []);
+      setUserLoaded(true);
+    } catch (err: any) {
+      console.error("[DEBUG] fetchProfile failed:", err);
+      console.error("[DEBUG] Error message:", err.message);
+      console.error("[DEBUG] Error stack:", err.stack);
 
-  // ---------------- Save Profile ----------------
+      // Set user as loaded even on error so form can be used
+      setUserLoaded(true);
+      setHasExistingProfile(false);
+
+      Alert.alert(
+        "Could Not Load Profile",
+        "Unable to load your previous data. You can still fill out the form. Error: " +
+          err.message,
+        [{ text: "OK" }]
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSaveProfile = async () => {
+    // Validation
     if (!givenName || !surname || !email) {
       Alert.alert(
         "Validation Error",
@@ -388,7 +427,18 @@ export default function ApplicationForm() {
         birthPlace,
         otherCountry,
       },
-      address: { houseNo, province, city, barangay, email, mobile, telephone },
+      address: {
+        houseNo,
+        street,
+        city,
+        barangay,
+        province,
+        postalCode,
+        country,
+        email,
+        mobile,
+        telephone,
+      },
       other_info: {
         height,
         weight,
@@ -434,7 +484,7 @@ export default function ApplicationForm() {
         return;
       }
 
-      const res = await fetch("http://192.168.1.48:3000/api/application/save", {
+      const res = await fetch(`${API_BASE}/my-application`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -443,22 +493,26 @@ export default function ApplicationForm() {
         body: JSON.stringify(profile),
       });
 
+      console.log("[DEBUG] saveProfile status:", res.status);
+
       if (!res.ok) {
         if (res.status === 401) {
           Alert.alert("Session Expired", "Please login again");
           router.push("/login");
           return;
         }
-        const errData = await res.json();
+        const errData = await res.json().catch(() => ({}));
         throw new Error(errData.message || "Server error");
       }
 
       const result = await res.json();
+
       Alert.alert(
         "Success",
-        hasExistingProfile
-          ? "Profile updated successfully!"
-          : "Profile saved successfully!",
+        result.message ||
+          (hasExistingProfile
+            ? "Profile updated successfully!"
+            : "Profile saved successfully!"),
         [
           {
             text: "OK",
@@ -467,12 +521,17 @@ export default function ApplicationForm() {
         ]
       );
     } catch (err: any) {
-      console.error(err);
+      console.error("[DEBUG] saveProfile failed:", err);
       Alert.alert("Error", `Failed to save profile: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
+
+  // ----------------------- Load on mount -----------------------
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
   if (!userLoaded) {
     return (
@@ -495,53 +554,60 @@ export default function ApplicationForm() {
     >
       <GradientHeader title="Application Form" onBack={() => router.back()} />
       <KeyboardAwareScrollView
-        style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 24 }}
-        enableOnAndroid={true}
+        style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 8 }}
+        enableOnAndroid
         extraScrollHeight={20}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Personal Info */}
-        <SectionTitle color={textColor}>Application Profile</SectionTitle>
+        {/* ==================== PERSONAL INFORMATION ==================== */}
+        <SectionTitle color={textColor}>Personal Information</SectionTitle>
+
         <InputField
-          label="Given Name"
+          label="Given Name *"
           value={givenName}
           onChangeText={setGivenName}
           color={textColor}
+          placeholder="Enter your first name"
         />
         <InputField
           label="Middle Name"
           value={middleName}
           onChangeText={setMiddleName}
           color={textColor}
+          placeholder="Enter your middle name"
         />
         <InputField
-          label="Surname"
+          label="Surname *"
           value={surname}
           onChangeText={setSurname}
           color={textColor}
+          placeholder="Enter your last name"
         />
-        <OptionSelector
-          label="Qualifier"
-          options={["Jr", "Sr", "N/A"]}
-          selected={qualifier}
-          onSelect={setQualifier}
+        <InputField
+          label="Qualifier (Jr., Sr., III, etc.)"
+          value={qualifier}
+          onChangeText={setQualifier}
           color={textColor}
+          placeholder="e.g., Jr."
         />
+
         <OptionSelector
           label="Sex"
-          options={["Male", "Female", "Other"]}
+          options={["Male", "Female"]}
           selected={sex}
           onSelect={setSex}
           color={textColor}
         />
-        <OptionSelector
+
+        <InputField
           label="Civil Status"
-          options={["Single", "Married", "Widowed", "Divorced", "N/A"]}
-          selected={civilStatus}
-          onSelect={setCivilStatus}
+          value={civilStatus}
+          onChangeText={setCivilStatus}
           color={textColor}
+          placeholder="e.g., Single, Married, Divorced"
         />
+
         <InputField
           label="Birthdate (MM/DD/YYYY)"
           value={birthdate}
@@ -549,246 +615,375 @@ export default function ApplicationForm() {
           color={textColor}
           placeholder="MM/DD/YYYY"
         />
+
         <Checkbox
-          label="I am a PWD"
+          label="Person with Disability (PWD)"
           value={isPWD}
           onToggle={() => setIsPWD(!isPWD)}
           color={textColor}
         />
+
         <Checkbox
-          label="I am a first-time job seeker"
+          label="First Time Job Seeker"
           value={isFirstTimeJobSeeker}
           onToggle={() => setIsFirstTimeJobSeeker(!isFirstTimeJobSeeker)}
           color={textColor}
         />
+
         <InputField
           label="Nationality"
           value={nationality}
           onChangeText={setNationality}
           color={textColor}
+          placeholder="e.g., Filipino"
         />
+
         <InputField
           label="Birth Place"
           value={birthPlace}
           onChangeText={setBirthPlace}
           color={textColor}
+          placeholder="City/Municipality where you were born"
         />
+
         <InputField
-          label="If Other Country"
+          label="Other Country (if applicable)"
           value={otherCountry}
           onChangeText={setOtherCountry}
           color={textColor}
+          placeholder="If born in another country"
         />
 
-        <Divider color={dividerColor} />
+        <Divider color={`${textColor}22`} />
 
-        {/* Contact / Address */}
-        <SectionTitle color={textColor}>Contact / Address</SectionTitle>
+        {/* ==================== ADDRESS ==================== */}
+        <SectionTitle color={textColor}>Address</SectionTitle>
+
         <InputField
-          label="House No / Building / Street"
+          label="House/Unit/Bldg No."
           value={houseNo}
           onChangeText={setHouseNo}
           color={textColor}
+          placeholder="House number"
         />
+
         <InputField
-          label="Province"
-          value={province}
-          onChangeText={setProvince}
+          label="Street"
+          value={street}
+          onChangeText={setStreet}
           color={textColor}
+          placeholder="Street name"
         />
-        <InputField
-          label="City / Municipality"
-          value={city}
-          onChangeText={setCity}
-          color={textColor}
-        />
+
         <InputField
           label="Barangay"
           value={barangay}
           onChangeText={setBarangay}
           color={textColor}
+          placeholder="Barangay"
         />
+
         <InputField
-          label="Email"
+          label="City/Municipality"
+          value={city}
+          onChangeText={setCity}
+          color={textColor}
+          placeholder="City or Municipality"
+        />
+
+        <InputField
+          label="Province"
+          value={province}
+          onChangeText={setProvince}
+          color={textColor}
+          placeholder="Province"
+        />
+
+        <InputField
+          label="Postal Code"
+          value={postalCode}
+          onChangeText={setPostalCode}
+          color={textColor}
+          placeholder="Postal/Zip code"
+          keyboardType="numeric"
+        />
+
+        <InputField
+          label="Country"
+          value={country}
+          onChangeText={setCountry}
+          color={textColor}
+          placeholder="Country"
+        />
+
+        <InputField
+          label="Email *"
           value={email}
           onChangeText={setEmail}
           color={textColor}
-          placeholder="example@mail.com"
+          placeholder="your.email@example.com"
+          keyboardType="email-address"
         />
+
         <InputField
           label="Mobile Number"
           value={mobile}
           onChangeText={setMobile}
           color={textColor}
-          placeholder="+63"
+          placeholder="+63 912 345 6789"
+          keyboardType="phone-pad"
         />
+
         <InputField
-          label="Telephone Number (optional)"
+          label="Telephone Number"
           value={telephone}
           onChangeText={setTelephone}
           color={textColor}
+          placeholder="Landline number"
+          keyboardType="phone-pad"
         />
 
-        <Divider color={dividerColor} />
+        <Divider color={`${textColor}22`} />
 
-        {/* Other Info */}
+        {/* ==================== OTHER INFORMATION ==================== */}
         <SectionTitle color={textColor}>Other Information</SectionTitle>
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <InputField
-            label="Height (cm)"
-            value={height}
-            onChangeText={setHeight}
-            color={textColor}
-            style={{ marginRight: 8 }}
-          />
-          <InputField
-            label="Weight (kg)"
-            value={weight}
-            onChangeText={setWeight}
-            color={textColor}
-            style={{ marginLeft: 8 }}
-          />
-        </View>
+
+        <InputField
+          label="Height (cm)"
+          value={height}
+          onChangeText={setHeight}
+          color={textColor}
+          placeholder="e.g., 170"
+          keyboardType="numeric"
+        />
+
+        <InputField
+          label="Weight (kg)"
+          value={weight}
+          onChangeText={setWeight}
+          color={textColor}
+          placeholder="e.g., 65"
+          keyboardType="numeric"
+        />
+
         <InputField
           label="Complexion"
           value={complexion}
           onChangeText={setComplexion}
           color={textColor}
+          placeholder="e.g., Fair, Medium, Dark"
         />
+
         <InputField
           label="Identifying Marks"
           value={identifyingMarks}
           onChangeText={setIdentifyingMarks}
           color={textColor}
+          placeholder="e.g., Scar on left arm, mole on right cheek"
         />
+
         <InputField
           label="Blood Type"
           value={bloodType}
           onChangeText={setBloodType}
           color={textColor}
+          placeholder="e.g., O+, A-, AB+"
         />
+
         <InputField
           label="Religion"
           value={religion}
           onChangeText={setReligion}
           color={textColor}
+          placeholder="Your religion"
         />
+
         <InputField
-          label="Educational Attainment"
+          label="Education"
           value={education}
           onChangeText={setEducation}
           color={textColor}
+          placeholder="Highest educational attainment"
         />
+
         <InputField
           label="Occupation"
           value={occupation}
           onChangeText={setOccupation}
           color={textColor}
+          placeholder="Current occupation"
         />
 
-        <Divider color={dividerColor} />
+        <Divider color={`${textColor}22`} />
 
-        {/* Family Background */}
-        <SectionTitle color={textColor}>Family Background</SectionTitle>
+        {/* ==================== FAMILY INFORMATION ==================== */}
+        <SectionTitle color={textColor}>Family Information</SectionTitle>
+
+        <Text
+          style={{
+            color: textColor,
+            fontSize: 16,
+            fontWeight: "600",
+            marginTop: 12,
+            marginBottom: 8,
+          }}
+        >
+          Father's Information
+        </Text>
+
         <InputField
-          label="Father's Given Name"
+          label="Given Name"
           value={fatherGiven}
           onChangeText={setFatherGiven}
           color={textColor}
+          placeholder="Father's first name"
         />
+
         <InputField
-          label="Father's Middle Name"
+          label="Middle Name"
           value={fatherMiddle}
           onChangeText={setFatherMiddle}
           color={textColor}
+          placeholder="Father's middle name"
         />
+
         <InputField
-          label="Father's Surname"
+          label="Surname"
           value={fatherSurname}
           onChangeText={setFatherSurname}
           color={textColor}
+          placeholder="Father's last name"
         />
+
         <InputField
           label="Qualifier"
           value={fatherQualifier}
           onChangeText={setFatherQualifier}
           color={textColor}
-        />
-        <InputField
-          label="Father's Birth Place (City/Municipality)"
-          value={fatherBirthPlace}
-          onChangeText={setFatherBirthPlace}
-          color={textColor}
-        />
-        <InputField
-          label="If Other Country"
-          value={fatherOtherCountry}
-          onChangeText={setFatherOtherCountry}
-          color={textColor}
+          placeholder="e.g., Jr., Sr."
         />
 
         <InputField
-          label="Mother's Maiden Given Name"
+          label="Birth Place"
+          value={fatherBirthPlace}
+          onChangeText={setFatherBirthPlace}
+          color={textColor}
+          placeholder="Where father was born"
+        />
+
+        <InputField
+          label="Other Country"
+          value={fatherOtherCountry}
+          onChangeText={setFatherOtherCountry}
+          color={textColor}
+          placeholder="If born abroad"
+        />
+
+        <Text
+          style={{
+            color: textColor,
+            fontSize: 16,
+            fontWeight: "600",
+            marginTop: 20,
+            marginBottom: 8,
+          }}
+        >
+          Mother's Information
+        </Text>
+
+        <InputField
+          label="Given Name"
           value={motherGiven}
           onChangeText={setMotherGiven}
           color={textColor}
+          placeholder="Mother's first name"
         />
+
         <InputField
-          label="Mother's Maiden Middle Name"
+          label="Middle Name"
           value={motherMiddle}
           onChangeText={setMotherMiddle}
           color={textColor}
+          placeholder="Mother's middle name"
         />
+
         <InputField
-          label="Mother's Maiden Surname"
+          label="Surname"
           value={motherSurname}
           onChangeText={setMotherSurname}
           color={textColor}
+          placeholder="Mother's maiden name"
         />
+
         <InputField
           label="Qualifier"
           value={motherQualifier}
           onChangeText={setMotherQualifier}
           color={textColor}
-        />
-        <InputField
-          label="Mother's Birth Place (City/Municipality)"
-          value={motherBirthPlace}
-          onChangeText={setMotherBirthPlace}
-          color={textColor}
-        />
-        <InputField
-          label="If Other Country"
-          value={motherOtherCountry}
-          onChangeText={setMotherOtherCountry}
-          color={textColor}
+          placeholder="e.g., Jr., Sr."
         />
 
         <InputField
-          label="Spouse Given Name"
+          label="Birth Place"
+          value={motherBirthPlace}
+          onChangeText={setMotherBirthPlace}
+          color={textColor}
+          placeholder="Where mother was born"
+        />
+
+        <InputField
+          label="Other Country"
+          value={motherOtherCountry}
+          onChangeText={setMotherOtherCountry}
+          color={textColor}
+          placeholder="If born abroad"
+        />
+
+        <Text
+          style={{
+            color: textColor,
+            fontSize: 16,
+            fontWeight: "600",
+            marginTop: 20,
+            marginBottom: 8,
+          }}
+        >
+          Spouse's Information (if married)
+        </Text>
+
+        <InputField
+          label="Given Name"
           value={spouseGiven}
           onChangeText={setSpouseGiven}
           color={textColor}
+          placeholder="Spouse's first name"
         />
+
         <InputField
-          label="Spouse Middle Name"
+          label="Middle Name"
           value={spouseMiddle}
           onChangeText={setSpouseMiddle}
           color={textColor}
+          placeholder="Spouse's middle name"
         />
+
         <InputField
-          label="Spouse Surname"
+          label="Surname"
           value={spouseSurname}
           onChangeText={setSpouseSurname}
           color={textColor}
+          placeholder="Spouse's last name"
         />
+
         <InputField
           label="Qualifier"
           value={spouseQualifier}
           onChangeText={setSpouseQualifier}
           color={textColor}
+          placeholder="e.g., Jr., Sr."
         />
 
+        {/* ==================== SAVE BUTTON ==================== */}
         <Button
           label={
             loading
@@ -801,6 +996,8 @@ export default function ApplicationForm() {
           disabled={loading}
           bgColor={buttonColor}
         />
+
+        <View style={{ height: 40 }} />
       </KeyboardAwareScrollView>
     </SafeAreaView>
   );
