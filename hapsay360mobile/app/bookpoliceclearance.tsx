@@ -115,9 +115,10 @@ export default function BookingPoliceClearance() {
   };
 
   const handleConfirm = async () => {
-    try {
-      setLoading(true);
+    setLoading(true);
 
+    try {
+      // 1️⃣ Get auth token
       const token = await getAuthToken();
       if (!token) {
         Alert.alert("Error", "Please login again");
@@ -125,39 +126,54 @@ export default function BookingPoliceClearance() {
         return;
       }
 
+      // 2️⃣ Validate selected date
       const selectedDateObj = dates.find((d) => d.day === selectedDate);
-      if (!selectedDateObj) throw new Error("Invalid date");
+      if (!selectedDateObj) {
+        throw new Error("Invalid date selected");
+      }
 
+      // 3️⃣ Prepare request payload
+      const payload = {
+        purpose,
+        policeStation: stationId,
+        appointmentDate: selectedDateObj.fullDate.toISOString(),
+        timeSlot: `${selectedTime} ${timeSlot}`,
+      };
+
+      // 4️⃣ Send POST request to backend
       const res = await fetch(`${API_BASE}/clearance/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          purpose,
-          policeStation: stationId,
-          appointmentDate: selectedDateObj.fullDate.toISOString(),
-          timeSlot: `${selectedTime} ${timeSlot}`,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const result = await res.json();
 
-      if (!res.ok)
+      if (!res.ok) {
+        // If backend sends an error, display it
         throw new Error(result?.message || "Failed to create clearance");
+      }
 
-      // Save appointment ID and custom_id
-      setAppointmentId(result.data._id);
-      const customId = result.data.custom_id;
+      // 5️⃣ Extract IDs from backend response
+      const { _id, custom_id } = result.data;
 
-      await AsyncStorage.setItem("latestClearanceId", result.data._id);
-      await AsyncStorage.setItem("latestClearanceCustomId", customId);
+      if (!_id || !custom_id) {
+        throw new Error("Missing appointment ID or custom ID from server");
+      }
 
+      // 6️⃣ Save to AsyncStorage
+      await AsyncStorage.setItem("latestClearanceId", _id);
+      await AsyncStorage.setItem("latestClearanceCustomId", custom_id);
+
+      setAppointmentId(_id);
       setShowConfirmation(false);
       setShowSuccess(true);
     } catch (err: any) {
-      Alert.alert("Error", err.message || "Unexpected error");
+      console.error("Error booking clearance:", err);
+      Alert.alert("Error", err.message || "Unexpected error occurred");
     } finally {
       setLoading(false);
     }
@@ -166,30 +182,48 @@ export default function BookingPoliceClearance() {
   const handleGoToPayment = async () => {
     setShowSuccess(false);
 
-    const selectedDateObj = dates.find((d) => d.day === selectedDate);
-    if (!selectedDateObj) return;
+    try {
+      // 1️⃣ Validate selected date
+      const selectedDateObj = dates.find((d) => d.day === selectedDate);
+      if (!selectedDateObj) {
+        throw new Error("Invalid appointment date");
+      }
 
-    const customId = await AsyncStorage.getItem("latestClearanceCustomId");
+      // 2️⃣ Retrieve latest clearance IDs from AsyncStorage
+      const appointmentIdFromStorage =
+        await AsyncStorage.getItem("latestClearanceId");
+      const customId = await AsyncStorage.getItem("latestClearanceCustomId");
 
-    const appointmentData = {
-      _id: appointmentId,
-      purpose,
-      policeStation: station,
-      appointmentDate: selectedDateObj.fullDate.toISOString(),
-      timeSlot: `${selectedTime} ${timeSlot}`,
-      status: "pending",
-      paymentStatus: "unpaid",
-      amount: 250,
-      custom_id: customId,
-    };
+      if (!appointmentIdFromStorage || !customId) {
+        throw new Error(
+          "Missing appointment ID or custom ID. Please try booking again."
+        );
+      }
 
-    router.push({
-      pathname: "/policeclearancepayment",
-      params: {
-        appointmentId,
-        appointmentData: JSON.stringify(appointmentData),
-      },
-    });
+      // 3️⃣ Prepare appointment data for payment screen
+      const appointmentData = {
+        _id: appointmentIdFromStorage,
+        purpose,
+        policeStation: station,
+        appointmentDate: selectedDateObj.fullDate.toISOString(),
+        timeSlot: `${selectedTime} ${timeSlot}`,
+        status: "pending",
+        paymentStatus: "unpaid",
+        amount: 250,
+        custom_id: customId,
+      };
+
+      router.push({
+        pathname: "/policeclearancepayment",
+        params: {
+          appointmentId: appointmentIdFromStorage,
+          appointmentData: JSON.stringify(appointmentData),
+        },
+      });
+    } catch (err: any) {
+      console.error("Error going to payment:", err);
+      Alert.alert("Error", err.message || "Failed to proceed to payment");
+    }
   };
 
   const selectedDateObj = dates.find((d) => d.day === selectedDate);
