@@ -49,12 +49,13 @@ const timeSlots = {
 
 export default function BookingPoliceClearance() {
   const router = useRouter();
-  const API_BASE = "http://192.168.0.100:3000/api";
+  const API_BASE = "http://192.168.0.101:3000/api";
 
   const [loading, setLoading] = useState(false);
   const [purpose, setPurpose] = useState("");
   const [station, setStation] = useState("");
-  const [policeStations, setPoliceStations] = useState<string[]>([]);
+  const [stationId, setStationId] = useState("");
+  const [policeStations, setPoliceStations] = useState<any[]>([]);
   const [loadingStations, setLoadingStations] = useState(false);
 
   const [selectedDate, setSelectedDate] = useState(today.getDate());
@@ -86,10 +87,7 @@ export default function BookingPoliceClearance() {
       });
       const data = await res.json();
       if (res.ok) {
-        // Map to "Name, Address"
-        setPoliceStations(
-          data.data.map((station: any) => `${station.name}, ${station.address}`)
-        );
+        setPoliceStations(data.data);
       } else {
         Alert.alert("Error", data.message || "Failed to fetch police stations");
       }
@@ -106,7 +104,7 @@ export default function BookingPoliceClearance() {
   }, []);
 
   const handleProceed = () => {
-    if (!purpose || !station) {
+    if (!purpose || !stationId) {
       Alert.alert(
         "Validation Error",
         "Please select purpose and police station"
@@ -119,6 +117,7 @@ export default function BookingPoliceClearance() {
   const handleConfirm = async () => {
     try {
       setLoading(true);
+
       const token = await getAuthToken();
       if (!token) {
         Alert.alert("Error", "Please login again");
@@ -127,65 +126,68 @@ export default function BookingPoliceClearance() {
       }
 
       const selectedDateObj = dates.find((d) => d.day === selectedDate);
-      if (!selectedDateObj) {
-        Alert.alert("Error", "Invalid date selected");
-        return;
-      }
+      if (!selectedDateObj) throw new Error("Invalid date");
 
-      const appointmentData = {
-        purpose,
-        policeStation: station,
-        appointmentDate: selectedDateObj.fullDate.toISOString(),
-        timeSlot: `${selectedTime} ${timeSlot}`,
-      };
-
-      const res = await fetch(`${API_BASE}/appointments`, {
+      const res = await fetch(`${API_BASE}/clearance/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(appointmentData),
+        body: JSON.stringify({
+          purpose,
+          policeStation: stationId,
+          appointmentDate: selectedDateObj.fullDate.toISOString(),
+          timeSlot: `${selectedTime} ${timeSlot}`,
+        }),
       });
 
-      if (!res.ok) {
-        if (res.status === 401) {
-          Alert.alert("Session Expired", "Please login again");
-          router.push("/login");
-          return;
-        }
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || "Failed to create appointment");
-      }
-
       const result = await res.json();
-      setAppointmentId(result.appointment._id);
+
+      if (!res.ok)
+        throw new Error(result?.message || "Failed to create clearance");
+
+      // Save appointment ID and custom_id
+      setAppointmentId(result.data._id);
+      const customId = result.data.custom_id;
+
+      await AsyncStorage.setItem("latestClearanceId", result.data._id);
+      await AsyncStorage.setItem("latestClearanceCustomId", customId);
+
       setShowConfirmation(false);
       setShowSuccess(true);
     } catch (err: any) {
-      console.error(err);
-      Alert.alert("Error", `Failed to create appointment: ${err.message}`);
-      setShowConfirmation(false);
+      Alert.alert("Error", err.message || "Unexpected error");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoToPayment = () => {
+  const handleGoToPayment = async () => {
     setShowSuccess(false);
+
     const selectedDateObj = dates.find((d) => d.day === selectedDate);
+    if (!selectedDateObj) return;
+
+    const customId = await AsyncStorage.getItem("latestClearanceCustomId");
+
+    const appointmentData = {
+      _id: appointmentId,
+      purpose,
+      policeStation: station,
+      appointmentDate: selectedDateObj.fullDate.toISOString(),
+      timeSlot: `${selectedTime} ${timeSlot}`,
+      status: "pending",
+      paymentStatus: "unpaid",
+      amount: 250,
+      custom_id: customId,
+    };
+
     router.push({
       pathname: "/policeclearancepayment",
       params: {
         appointmentId,
-        appointmentData: JSON.stringify({
-          _id: appointmentId,
-          purpose,
-          policeStation: station,
-          appointmentDate: selectedDateObj?.fullDate.toISOString(),
-          timeSlot: `${selectedTime} ${timeSlot}`,
-          amount: 250,
-        }),
+        appointmentData: JSON.stringify(appointmentData),
       },
     });
   };
@@ -491,16 +493,19 @@ export default function BookingPoliceClearance() {
         >
           <View className="bg-white rounded-2xl w-4/5 max-h-96 overflow-hidden">
             <ScrollView>
-              {policeStations.map((item, index) => (
+              {policeStations.map((item) => (
                 <TouchableOpacity
-                  key={index}
+                  key={item._id}
                   className="p-4 border-b border-gray-100 active:bg-gray-50"
                   onPress={() => {
-                    setStation(item);
+                    setStation(`${item.name}, ${item.address}`);
+                    setStationId(item._id);
                     setShowStationDropdown(false);
                   }}
                 >
-                  <Text className="text-gray-900 text-base">{item}</Text>
+                  <Text className="text-gray-900 text-base">
+                    {item.name}, {item.address}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -516,24 +521,23 @@ export default function BookingPoliceClearance() {
         onRequestClose={() => !loading && setShowConfirmation(false)}
       >
         <View className="flex-1 justify-end bg-black/40">
-          <View className="bg-white rounded-t-3xl p-6 items-center">
+          <View className="bg-white rounded-t-3xl p-6 w-full max-h-[60%] items-center">
             <Text className="text-lg font-semibold mb-3">
               Confirm Appointment
             </Text>
             <Text className="text-gray-700 text-center mb-1">
               {formattedDate}
             </Text>
-            <Text className="text-indigo-900 text-lg font-bold mb-1">
-              {`${selectedTime} ${timeSlot}`}
-            </Text>
+            <Text className="text-indigo-900 text-lg font-bold mb-1">{`${selectedTime} ${timeSlot}`}</Text>
             <Text className="text-gray-700 text-center mb-6">{station}</Text>
+
             <TouchableOpacity
-              className="bg-indigo-600 px-8 py-3 rounded-xl mb-10"
+              className="bg-indigo-600 px-8 py-3 rounded-xl w-full"
               onPress={handleConfirm}
               disabled={loading}
               activeOpacity={0.8}
             >
-              <Text className="text-white font-semibold text-base">
+              <Text className="text-white font-semibold text-base text-center">
                 {loading ? "Confirming..." : "Confirm and Proceed"}
               </Text>
             </TouchableOpacity>
@@ -549,7 +553,7 @@ export default function BookingPoliceClearance() {
         onRequestClose={() => setShowSuccess(false)}
       >
         <View className="flex-1 justify-end bg-black/40">
-          <View className="bg-white rounded-t-3xl p-6 items-center">
+          <View className="bg-white rounded-t-3xl p-6 w-full max-h-[50%] items-center">
             <Text className="text-lg font-semibold mb-3">
               Appointment Saved
             </Text>
