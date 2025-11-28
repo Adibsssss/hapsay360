@@ -1,4 +1,3 @@
-// models/Blotter.js
 import mongoose from "mongoose";
 
 const blotterSchema = new mongoose.Schema(

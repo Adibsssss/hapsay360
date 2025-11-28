@@ -11,8 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import GradientHeader from "./components/GradientHeader";
 
-const API_BASE = "http://192.168.0.100:3000";
-
+const API_BASE = "http://192.168.0.101:3000";
 export default function ReporterInfo() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
