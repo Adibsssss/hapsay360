@@ -42,14 +42,16 @@ export default function Layout() {
         name="nearesthelp"
         options={{
           tabBarLabel: "Nearest Help",
-          tabBarStyle: { display: "none" },
+          tabBarStyle: { display: "none" }, // Hide tabs here if wanted
           tabBarIcon: ({ color }) => (
             <Ionicons name="navigate-outline" size={24} color={color} />
           ),
         }}
       />
+
+      {/* UPDATE THIS PART: name must match the filename inside (tabs) */}
       <Tabs.Screen
-        name="trackactivity"
+        name="trackactivity" // <--- Mao ni importante!
         options={{
           tabBarLabel: "Track Activity",
           tabBarIcon: ({ color }) => (
@@ -57,6 +59,7 @@ export default function Layout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="profile"
         options={{
