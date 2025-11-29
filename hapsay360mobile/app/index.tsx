@@ -16,7 +16,7 @@ import { Link, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_BASE = "http://192.168.0.101:3000";
+const API_BASE = "http://192.168.1.6:3000";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -55,7 +55,7 @@ export default function LoginScreen() {
           body: JSON.stringify({ email, password }),
         },
         10000
-      ); // 10 seconds timeout
+      );
 
       console.log("Login response status:", response.status);
 
@@ -69,9 +69,25 @@ export default function LoginScreen() {
 
       console.log("Login successful:", data);
 
-      // Save token & user
+      // --- CRITICAL FIX STARTS HERE ---
+
+      // 1. Save Token (Mao ni pangitaon sa TrackRequests: "authToken")
       await AsyncStorage.setItem("authToken", data.token);
+
+      // 2. Save User ID (IMPORTANTE: Mao ni ang kulang ganina)
+      if (data.user && data.user._id) {
+        await AsyncStorage.setItem("userId", data.user._id);
+      }
+
+      // 3. Save User Name (Optional: Para sa "Hello, [Name]" sa home screen)
+      if (data.user && data.user.given_name) {
+        await AsyncStorage.setItem("userName", data.user.given_name);
+      }
+
+      // 4. Save Full User Object (Optional, basig need nimo sa profile page)
       await AsyncStorage.setItem("user", JSON.stringify(data.user));
+
+      // --- CRITICAL FIX ENDS HERE ---
 
       router.replace("./(tabs)");
     } catch (err) {

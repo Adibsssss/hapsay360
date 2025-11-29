@@ -21,7 +21,7 @@ import GradientHeader from "./components/GradientHeader";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // 1. MATCHING YOUR WORKING CONFIG
-const API_BASE = "http://192.168.0.101:3000";
+const API_BASE = "http://192.168.1.6:3000";
 
 export default function TrackRequests() {
   const router = useRouter();
@@ -33,7 +33,6 @@ export default function TrackRequests() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
-  const [modalLoading, setModalLoading] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   // --- ANIMATIONS ---
@@ -47,68 +46,46 @@ export default function TrackRequests() {
 
   const fetchMyRequests = async () => {
     try {
-      // 2. FIX: CHANGED "userToken" TO "authToken" TO MATCH YOUR WORKING FILES
       const token = await AsyncStorage.getItem("authToken");
+      const userId = await AsyncStorage.getItem("userId");
 
-      if (!token) {
-        Alert.alert("Session Expired", "Please log in again.");
-        setLoading(false);
+      // DEBUGGING LOGS (Check your terminal for this!)
+      // console.log("--- DEBUG TRACK REQUESTS ---");
+      // console.log("Token:", token ? "Exists" : "Missing");
+      // console.log("UserID in Storage:", userId);
+
+      if (!token || !userId) {
+        Alert.alert("Session Error", "Please log in again.");
         return;
       }
 
-      console.log(`Fetching: ${API_BASE}/api/blotter/my-blotters`);
+      // Updated URL with "s"
+      const url = `${API_BASE}/api/blotters/my-blotters/${userId}`;
+      // console.log("Fetching URL:", url);
 
-      const response = await fetch(`${API_BASE}/api/blotter/my-blotters`, {
+      const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Handle response
-      const text = await response.text();
-      try {
-        const data = JSON.parse(text);
-        if (response.ok) {
-          setRequests(data.blotters);
-        } else {
-          // If token is invalid, the backend might return a message here
-          Alert.alert("Error", data.message || "Could not fetch requests");
-        }
-      } catch (e) {
-        console.error("Server Response Error:", text);
-        Alert.alert("Server Error", "Received invalid response from server");
+      const data = await response.json();
+      // console.log("Data Received:", data); // Check if count is 0 or > 0
+
+      if (data.success) {
+        setRequests(data.blotters);
+      } else {
+        Alert.alert("Error", "Could not fetch requests");
       }
     } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Network error");
+      console.error("Fetch Error:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // --- FETCH SINGLE REQUEST DETAILS (FOR MODAL) ---
-  const fetchRequestDetails = async (blotterNumber) => {
-    setModalLoading(true);
-    try {
-      // Public endpoint usually doesn't need token, but if your backend requires it, add headers here too
-      const response = await fetch(
-        `${API_BASE}/api/blotter/track/${blotterNumber}`
-      );
-      const data = await response.json();
-
-      if (response.ok) {
-        setSelectedRequest(data);
-        openDetailsModal();
-      } else {
-        Alert.alert("Error", "Could not fetch details");
-      }
-    } catch (error) {
-      Alert.alert("Error", "Network error");
-    } finally {
-      setModalLoading(false);
-    }
-  };
-
   // --- MODAL HANDLERS ---
-  const openDetailsModal = () => {
+  const openDetailsModal = (item) => {
+    console.log("Opening Item:", item); // Debug check
+    setSelectedRequest(item);
     setShowDetailsModal(true);
     Animated.timing(slideAnim, {
       toValue: 0,
@@ -166,9 +143,15 @@ export default function TrackRequests() {
             style={{ marginTop: 50 }}
           />
         ) : requests.length === 0 ? (
-          <Text className="text-center text-gray-500 mt-10">
-            No requests found.
-          </Text>
+          <View className="mt-10 items-center">
+            <Text className="text-gray-500 text-lg">No requests found.</Text>
+            <TouchableOpacity
+              onPress={fetchMyRequests}
+              className="mt-4 bg-gray-200 px-4 py-2 rounded-lg"
+            >
+              <Text className="text-gray-700">Tap to Refresh</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           requests.map((item) => (
             <View
@@ -179,47 +162,37 @@ export default function TrackRequests() {
                 <Text className="text-lg font-bold text-gray-900 mb-3">
                   Police Blotter
                 </Text>
-
                 <Divider color={dividerColor} />
 
                 {/* Vertical Step Indicator */}
-                <View className="flex-row mt-4">
-                  <View className="w-4 mr-5 items-center">
-                    <View className="w-0.5 flex-1 bg-gray-300 absolute top-0 bottom-0" />
-                    <View
-                      className={`w-5 h-5 rounded-full border-2 border-white z-10 ${
-                        item.status === "Resolved"
-                          ? "bg-green-500"
-                          : "bg-blue-500"
-                      }`}
-                    />
+                <View className="flex-1">
+                  <View className="mb-2">
+                    <Text className="text-gray-900 font-medium text-base">
+                      Current Status
+                    </Text>
+                    <Text className="text-indigo-600 font-bold text-sm">
+                      {item.status ? item.status.toUpperCase() : "PENDING"}
+                    </Text>
                   </View>
 
-                  <View className="flex-1">
-                    <View className="mb-2">
-                      <Text className="text-gray-900 font-medium text-base">
-                        Current Status
-                      </Text>
-                      <Text className="text-indigo-600 font-bold text-sm">
-                        {item.status ? item.status.toUpperCase() : "PENDING"}
-                      </Text>
-                    </View>
+                  <View className="mb-2">
+                    <Text className="text-gray-900 font-medium text-base">
+                      Incident Type
+                    </Text>
+                    <Text className="text-gray-600 text-sm">
+                      {item.incident?.incident_type || "N/A"}
+                    </Text>
+                  </View>
 
-                    <View className="mb-2">
-                      <Text className="text-gray-900 font-medium text-base">
-                        Incident Type
-                      </Text>
-                      <Text className="text-gray-600 text-sm">
-                        {item.incidentType}
-                      </Text>
-                    </View>
-
-                    <View>
-                      <Text className="text-gray-900 font-medium text-base">
-                        Date
-                      </Text>
-                      <Text className="text-gray-600 text-sm">{item.date}</Text>
-                    </View>
+                  <View>
+                    <Text className="text-gray-900 font-medium text-base">
+                      Date
+                    </Text>
+                    <Text className="text-gray-600 text-sm">
+                      {item.incident?.date
+                        ? new Date(item.incident.date).toLocaleDateString()
+                        : "N/A"}
+                    </Text>
                   </View>
                 </View>
 
@@ -228,23 +201,18 @@ export default function TrackRequests() {
                   <Text className="text-sm font-semibold text-gray-700">
                     Ref #:{" "}
                     <Text className="text-indigo-600">
-                      {item.blotterNumber}
+                      {item.custom_id || item.blotterNumber || "N/A"}
                     </Text>
                   </Text>
 
                   <TouchableOpacity
-                    onPress={() => fetchRequestDetails(item.blotterNumber)}
+                    onPress={() => openDetailsModal(item)}
                     activeOpacity={0.8}
                     className="bg-indigo-600 py-3 px-6 rounded-xl"
                   >
-                    {modalLoading &&
-                    selectedRequest?.blotterNumber === item.blotterNumber ? (
-                      <ActivityIndicator color="white" />
-                    ) : (
-                      <Text className="text-white font-semibold text-base">
-                        Check Details
-                      </Text>
-                    )}
+                    <Text className="text-white font-semibold text-base">
+                      Check Details
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -254,7 +222,7 @@ export default function TrackRequests() {
         <View className="h-8" />
       </ScrollView>
 
-      {/* --- DETAILS MODAL --- */}
+      {/* --- DETAILS MODAL (FIXED STRUCTURE) --- */}
       <Modal visible={showDetailsModal} transparent animationType="none">
         <View className="flex-1 bg-black/50 justify-end">
           <TouchableWithoutFeedback onPress={closeDetailsModal}>
@@ -286,14 +254,15 @@ export default function TrackRequests() {
                 showsVerticalScrollIndicator={false}
               >
                 <View className="px-6">
-                  {/* --- Police Blotter Info --- */}
                   <Text className="text-2xl font-bold text-gray-900 mb-1">
                     Police Blotter
                   </Text>
                   <Text className="text-sm text-gray-500 mb-3">
                     Reference No:{" "}
                     <Text className="font-semibold text-gray-700">
-                      {selectedRequest.blotterNumber}
+                      {selectedRequest.custom_id ||
+                        selectedRequest.blotterNumber ||
+                        "N/A"}
                     </Text>
                   </Text>
 
@@ -302,43 +271,47 @@ export default function TrackRequests() {
                   <Text className="font-bold text-gray-900 mb-1">
                     Incident Type:{" "}
                     <Text className="font-normal">
-                      {selectedRequest.incidentType}
+                      {selectedRequest.incident?.incident_type || "N/A"}
                     </Text>
                   </Text>
+
                   <Text className="font-bold text-gray-900 mb-1">
                     Date & Time:{" "}
                     <Text className="font-normal">
-                      {selectedRequest.dateTime}
+                      {selectedRequest.incident?.date
+                        ? new Date(
+                            selectedRequest.incident.date
+                          ).toLocaleDateString()
+                        : ""}{" "}
+                      {selectedRequest.incident?.time || ""}
                     </Text>
                   </Text>
-                  <Text className="font-bold text-gray-900 mb-1">
-                    Location:{" "}
-                    <Text className="font-normal">
-                      {selectedRequest.location}
-                    </Text>
-                  </Text>
+
+                  {/* Handling Description correctly */}
                   <Text className="font-bold text-gray-900 mb-1">
                     Description:{" "}
                     <Text className="font-normal">
-                      "{selectedRequest.description}"
+                      "
+                      {selectedRequest.incident?.description ||
+                        "No description provided"}
+                      "
                     </Text>
                   </Text>
+
+                  {/* Handling Officer population safely */}
                   <Text className="font-bold text-gray-900 mb-1">
                     Assigned Officer:{" "}
                     <Text className="font-normal">
-                      {selectedRequest.assignedOfficer}
+                      {selectedRequest.assigned_officer
+                        ? `${selectedRequest.assigned_officer.first_name || ""} ${selectedRequest.assigned_officer.last_name || ""}`
+                        : "Unassigned"}
                     </Text>
                   </Text>
-                  <Text className="font-bold text-gray-900 mb-1">
-                    Police Station:{" "}
-                    <Text className="font-normal">
-                      {selectedRequest.policeStation}
-                    </Text>
-                  </Text>
+
                   <Text className="font-bold text-gray-900 mb-6">
-                    Contact:{" "}
+                    Status:{" "}
                     <Text className="font-normal">
-                      {selectedRequest.contact}
+                      {selectedRequest.status}
                     </Text>
                   </Text>
 
@@ -348,43 +321,11 @@ export default function TrackRequests() {
                   <Text className="text-xl font-bold text-gray-900 mb-3">
                     Status Timeline
                   </Text>
-
-                  <View className="border border-gray-300 rounded-2xl p-4 mb-6">
-                    <View className="flex-row">
-                      <View className="items-center mr-4">
-                        <View className="w-0.5 flex-1 bg-gray-300 absolute top-0 bottom-0" />
-                        {selectedRequest.timeline &&
-                          selectedRequest.timeline.map((step, idx) => (
-                            <View
-                              key={`dot-${idx}`}
-                              className="h-full flex-1 justify-start"
-                            >
-                              <View
-                                className={`w-5 h-5 rounded-full border-2 border-white z-10 mb-12 ${getStatusColor(
-                                  step.color
-                                )}`}
-                              />
-                            </View>
-                          ))}
-                      </View>
-
-                      <View className="flex-1">
-                        {selectedRequest.timeline &&
-                          selectedRequest.timeline.map((step, idx) => (
-                            <View
-                              key={`text-${idx}`}
-                              className="h-[70px] justify-start -mt-1"
-                            >
-                              <Text className="font-semibold text-gray-900">
-                                {step.title}
-                              </Text>
-                              <Text className="text-sm text-gray-600">
-                                {step.date}
-                              </Text>
-                            </View>
-                          ))}
-                      </View>
-                    </View>
+                  {/* Simplified Timeline View for now */}
+                  <View className="mb-6">
+                    <Text className="text-gray-500 italic">
+                      Timeline view coming soon...
+                    </Text>
                   </View>
 
                   <View className="h-[1px] bg-gray-300 mb-4" />
@@ -395,9 +336,16 @@ export default function TrackRequests() {
                   </Text>
                   <View className="mb-4">
                     <View className="w-full h-40 bg-gray-200 rounded-xl mb-2 items-center justify-center overflow-hidden">
-                      {selectedRequest.photoEvidence ? (
+                      {/* Check if attachments exist and is array, or check photoEvidence field if you used that */}
+                      {selectedRequest.photoEvidence ||
+                      (selectedRequest.attachments &&
+                        selectedRequest.attachments.length > 0) ? (
                         <Image
-                          source={{ uri: selectedRequest.photoEvidence }}
+                          source={{
+                            uri:
+                              selectedRequest.photoEvidence ||
+                              selectedRequest.attachments[0]?.url,
+                          }}
                           style={{ width: "100%", height: "100%" }}
                           resizeMode="cover"
                         />
@@ -415,7 +363,6 @@ export default function TrackRequests() {
                   <Text className="text-xl font-bold text-gray-900 mb-3">
                     Communication Options
                   </Text>
-
                   <View className="space-y-3 mb-10">
                     <TouchableOpacity
                       onPress={() =>
@@ -426,20 +373,6 @@ export default function TrackRequests() {
                         • Message Officer
                       </Text>
                     </TouchableOpacity>
-
-                    <TouchableOpacity
-                      onPress={() =>
-                        Alert.alert(
-                          "Call",
-                          `Calling ${selectedRequest.contact}`
-                        )
-                      }
-                    >
-                      <Text className="text-blue-700 text-base">
-                        • Call Station
-                      </Text>
-                    </TouchableOpacity>
-
                     <TouchableOpacity
                       onPress={() =>
                         Alert.alert("Update", "Requesting update...")

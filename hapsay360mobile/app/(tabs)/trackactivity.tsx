@@ -11,29 +11,81 @@ import {
   StatusBar,
   useColorScheme,
   Alert,
+  ActivityIndicator,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { X, Shield, Phone, MessageSquare } from "lucide-react-native";
+import { X } from "lucide-react-native";
 import GradientHeader from "../components/GradientHeader";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// STATIC NI WALA NI PULOS
+// 1. MATCHING YOUR WORKING CONFIG
+const API_BASE = "http://192.168.1.6:3000";
 
-// Track request akong gi gamit na file.
-
-export default function TrackActivity() {
+export default function TrackRequests() {
   const router = useRouter();
-  const [expanded, setExpanded] = useState(false);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const dividerColor = isDark ? "#4b5563" : "#d1d5db";
 
+  // --- STATE ---
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+  // --- ANIMATIONS ---
   const { height } = Dimensions.get("window");
   const slideAnim = useRef(new Animated.Value(height)).current;
 
-  const openDetailsModal = () => {
+  // --- FETCH ALL REQUESTS (ON LOAD) ---
+  useEffect(() => {
+    fetchMyRequests();
+  }, []);
+
+  const fetchMyRequests = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      const userId = await AsyncStorage.getItem("userId");
+
+      // DEBUGGING LOGS (Check your terminal for this!)
+      // console.log("--- DEBUG TRACK REQUESTS ---");
+      // console.log("Token:", token ? "Exists" : "Missing");
+      // console.log("UserID in Storage:", userId);
+
+      if (!token || !userId) {
+        Alert.alert("Session Error", "Please log in again.");
+        return;
+      }
+
+      // Updated URL with "s"
+      const url = `${API_BASE}/api/blotters/my-blotters/${userId}`;
+      // console.log("Fetching URL:", url);
+
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await response.json();
+      // console.log("Data Received:", data); // Check if count is 0 or > 0
+
+      if (data.success) {
+        setRequests(data.blotters);
+      } else {
+        Alert.alert("Error", "Could not fetch requests");
+      }
+    } catch (error) {
+      console.error("Fetch Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- MODAL HANDLERS ---
+  const openDetailsModal = (item) => {
+    console.log("Opening Item:", item); // Debug check
+    setSelectedRequest(item);
     setShowDetailsModal(true);
     Animated.timing(slideAnim, {
       toValue: 0,
@@ -47,43 +99,33 @@ export default function TrackActivity() {
       toValue: height,
       duration: 300,
       useNativeDriver: true,
-    }).start(() => setShowDetailsModal(false));
+    }).start(() => {
+      setShowDetailsModal(false);
+      setSelectedRequest(null);
+    });
   };
 
-  const handleMessageOfficer = () => {
-    Alert.alert(
-      "Officer Details",
-      "Phone: 0917-555-6789\nEmail: maria.cruz@police.gov.ph\nLandline: (088) 222-7890",
-      [{ text: "OK" }]
-    );
-  };
-
-  const handleCallStation = () => {
-    Alert.alert(
-      "Station Details",
-      "Phone: (088) 123-4567\nEmail: lapasan@police.gov.ph\nLandline: (088) 555-0000",
-      [{ text: "OK" }]
-    );
-  };
-
-  const handleRequestUpdate = () => {
-    Alert.alert(
-      "Request Sent",
-      "An email would be sent shortly after your request. Thank you!",
-      [{ text: "OK" }]
-    );
+  // --- HELPER: MAP BACKEND COLOR TO TAILWIND ---
+  const getStatusColor = (colorName) => {
+    switch (colorName) {
+      case "green":
+        return "bg-green-500";
+      case "blue":
+        return "bg-blue-500";
+      case "orange":
+        return "bg-orange-500";
+      case "red":
+        return "bg-red-500";
+      default:
+        return "bg-gray-300";
+    }
   };
 
   const Divider = ({ color }: { color: string }) => (
-    <View
-      style={{
-        height: 1,
-        backgroundColor: color,
-        marginVertical: 2,
-      }}
-    />
+    <View style={{ height: 1, backgroundColor: color, marginVertical: 2 }} />
   );
 
+  // --- RENDER ---
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["left", "right"]}>
       <StatusBar barStyle="light-content" />
@@ -92,82 +134,97 @@ export default function TrackActivity() {
         onBack={() => router.back()}
       />
 
-      {/* --- MAIN CONTENT --- */}
+      {/* --- MAIN LIST --- */}
       <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
-        <View className="border border-gray-200 rounded-2xl overflow-hidden mt-4 mb-8 shadow-sm bg-white">
-          <View className="p-5">
-            <Text className="text-lg font-bold text-gray-900 mb-3">
-              Police Blotter
-            </Text>
-
-            <Divider color={dividerColor} />
-
-            {/* Vertical Step Indicator */}
-            <View className="flex-row mt-4">
-              <View className="w-4" />
-
-              <View className="items-center">
-                <View className="w-0.5 flex-1 bg-gray-300 absolute top-0 bottom-0" />
-
-                <View className="w-5 h-5 rounded-full bg-green-500 border-2 border-white z-10" />
-                <View className="flex-1" />
-                <View className="w-5 h-5 rounded-full bg-blue-500 border-2 border-white z-10" />
-                <View className="flex-1" />
-                <View className="w-5 h-5 rounded-full bg-blue-500 border-2 border-white z-10" />
-              </View>
-
-              <View className="flex-1 ml-5">
-                <View className="mb-6">
-                  <Text className="text-gray-900 font-medium text-base">
-                    Report Submitted
-                  </Text>
-                  <Text className="text-gray-600 text-sm">
-                    Oct 14, 10:45 AM
-                  </Text>
-                </View>
-
-                <View className="mb-6">
-                  <Text className="text-gray-900 font-medium text-base">
-                    Incident Type
-                  </Text>
-                  <Text className="text-gray-600 text-sm">Theft/Robbery</Text>
-                </View>
-
-                <View>
-                  <Text className="text-gray-900 font-medium text-base">
-                    Location
-                  </Text>
-                  <Text className="text-gray-600 text-sm">
-                    Lapasan Bridge, CDO
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Reference Number + Button */}
-            <View className="flex-row items-center justify-between mt-6">
-              <Text className="text-sm font-semibold text-gray-700">
-                Reference #: <Text className="text-indigo-600">BLT-092345</Text>
-              </Text>
-
-              <TouchableOpacity
-                onPress={openDetailsModal}
-                activeOpacity={0.8}
-                className="bg-indigo-600 py-3 px-6 rounded-xl"
-              >
-                <Text className="text-white font-semibold text-base">
-                  Check Details
-                </Text>
-              </TouchableOpacity>
-            </View>
+        {loading ? (
+          <ActivityIndicator
+            size="large"
+            color="#4f46e5"
+            style={{ marginTop: 50 }}
+          />
+        ) : requests.length === 0 ? (
+          <View className="mt-10 items-center">
+            <Text className="text-gray-500 text-lg">No requests found.</Text>
+            <TouchableOpacity
+              onPress={fetchMyRequests}
+              className="mt-4 bg-gray-200 px-4 py-2 rounded-lg"
+            >
+              <Text className="text-gray-700">Tap to Refresh</Text>
+            </TouchableOpacity>
           </View>
-        </View>
+        ) : (
+          requests.map((item) => (
+            <View
+              key={item._id}
+              className="border border-gray-200 rounded-2xl overflow-hidden mt-4 mb-4 shadow-sm bg-white"
+            >
+              <View className="p-5">
+                <Text className="text-lg font-bold text-gray-900 mb-3">
+                  Police Blotter
+                </Text>
+                <Divider color={dividerColor} />
+
+                {/* Vertical Step Indicator */}
+                <View className="flex-1">
+                  <View className="mb-2">
+                    <Text className="text-gray-900 font-medium text-base">
+                      Current Status
+                    </Text>
+                    <Text className="text-indigo-600 font-bold text-sm">
+                      {item.status ? item.status.toUpperCase() : "PENDING"}
+                    </Text>
+                  </View>
+
+                  <View className="mb-2">
+                    <Text className="text-gray-900 font-medium text-base">
+                      Incident Type
+                    </Text>
+                    <Text className="text-gray-600 text-sm">
+                      {item.incident?.incident_type || "N/A"}
+                    </Text>
+                  </View>
+
+                  <View>
+                    <Text className="text-gray-900 font-medium text-base">
+                      Date
+                    </Text>
+                    <Text className="text-gray-600 text-sm">
+                      {item.incident?.date
+                        ? new Date(item.incident.date).toLocaleDateString()
+                        : "N/A"}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Reference Number + Button */}
+                <View className="flex-row items-center justify-between mt-6">
+                  <Text className="text-sm font-semibold text-gray-700">
+                    Ref #:{" "}
+                    <Text className="text-indigo-600">
+                      {item.custom_id || item.blotterNumber || "N/A"}
+                    </Text>
+                  </Text>
+
+                  <TouchableOpacity
+                    onPress={() => openDetailsModal(item)}
+                    activeOpacity={0.8}
+                    className="bg-indigo-600 py-3 px-6 rounded-xl"
+                  >
+                    <Text className="text-white font-semibold text-base">
+                      Check Details
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          ))
+        )}
+        <View className="h-8" />
       </ScrollView>
 
-      {/* --- DETAILS MODAL --- */}
+      {/* --- DETAILS MODAL (FIXED STRUCTURE) --- */}
       <Modal visible={showDetailsModal} transparent animationType="none">
         <View className="flex-1 bg-black/50 justify-end">
-          {/* Background touch to close */}
           <TouchableWithoutFeedback onPress={closeDetailsModal}>
             <View className="absolute top-0 left-0 right-0 bottom-0" />
           </TouchableWithoutFeedback>
@@ -190,155 +247,145 @@ export default function TrackActivity() {
             </View>
 
             {/* Scrollable Content */}
-            <ScrollView
-              nestedScrollEnabled
-              contentContainerStyle={{ paddingBottom: 40 }}
-              showsVerticalScrollIndicator={false}
-            >
-              <View className="px-6">
-                {/* --- Police Blotter Info --- */}
-                <Text className="text-2xl font-bold text-gray-900 mb-1">
-                  Police Blotter
-                </Text>
-                <Text className="text-sm text-gray-500 mb-3">
-                  Reference No:{" "}
-                  <Text className="font-semibold text-gray-700">
-                    BLT-092345
+            {selectedRequest && (
+              <ScrollView
+                nestedScrollEnabled
+                contentContainerStyle={{ paddingBottom: 40 }}
+                showsVerticalScrollIndicator={false}
+              >
+                <View className="px-6">
+                  <Text className="text-2xl font-bold text-gray-900 mb-1">
+                    Police Blotter
                   </Text>
-                </Text>
-
-                <View className="h-[1px] bg-gray-300 mb-4" />
-
-                <Text className="font-bold text-gray-900 mb-1">
-                  Incident Type:{" "}
-                  <Text className="font-normal">Theft / Robbery</Text>
-                </Text>
-                <Text className="font-bold text-gray-900 mb-1">
-                  Date & Time:{" "}
-                  <Text className="font-normal">Oct 14, 2025 - 10:45 AM</Text>
-                </Text>
-                <Text className="font-bold text-gray-900 mb-1">
-                  Location:{" "}
-                  <Text className="font-normal">Lapasan Bridge, CDO</Text>
-                </Text>
-                <Text className="font-bold text-gray-900 mb-1">
-                  Description:{" "}
-                  <Text className="font-normal">
-                    "My phone was stolen while waiting at the bus stop."
+                  <Text className="text-sm text-gray-500 mb-3">
+                    Reference No:{" "}
+                    <Text className="font-semibold text-gray-700">
+                      {selectedRequest.custom_id ||
+                        selectedRequest.blotterNumber ||
+                        "N/A"}
+                    </Text>
                   </Text>
-                </Text>
-                <Text className="font-bold text-gray-900 mb-1">
-                  Assigned Officer:{" "}
-                  <Text className="font-normal">P/Cpl. Maria Dea Cruz</Text>
-                </Text>
-                <Text className="font-bold text-gray-900 mb-1">
-                  Police Station:{" "}
-                  <Text className="font-normal">Lapasan Police Station</Text>
-                </Text>
-                <Text className="font-bold text-gray-900 mb-6">
-                  Contact: <Text className="font-normal">(088) 123-4567</Text>
-                </Text>
 
-                <View className="h-[1px] bg-gray-300 mb-4" />
+                  <View className="h-[1px] bg-gray-300 mb-4" />
 
-                {/* --- Status Timeline --- */}
-                <Text className="text-xl font-bold text-gray-900 mb-3">
-                  Status Timeline
-                </Text>
+                  <Text className="font-bold text-gray-900 mb-1">
+                    Incident Type:{" "}
+                    <Text className="font-normal">
+                      {selectedRequest.incident?.incident_type || "N/A"}
+                    </Text>
+                  </Text>
 
-                <View className="border border-gray-300 rounded-2xl p-4 mb-6">
-                  <View className="flex-row">
-                    <View className="items-center mr-4">
-                      <View className="w-0.5 flex-1 bg-gray-300 absolute top-0 bottom-0" />
-                      <View className="w-5 h-5 rounded-full bg-green-500 border-2 border-white z-10" />
-                      <View className="flex-1" />
-                      <View className="w-5 h-5 rounded-full bg-yellow-400 border-2 border-white z-10" />
-                      <View className="flex-1" />
-                      <View className="w-5 h-5 rounded-full bg-orange-500 border-2 border-white z-10" />
-                      <View className="flex-1" />
-                      <View className="w-5 h-5 rounded-full bg-red-500 border-2 border-white z-10" />
-                    </View>
+                  <Text className="font-bold text-gray-900 mb-1">
+                    Date & Time:{" "}
+                    <Text className="font-normal">
+                      {selectedRequest.incident?.date
+                        ? new Date(
+                            selectedRequest.incident.date
+                          ).toLocaleDateString()
+                        : ""}{" "}
+                      {selectedRequest.incident?.time || ""}
+                    </Text>
+                  </Text>
 
-                    <View className="flex-1">
-                      <View className="mb-6">
-                        <Text className="font-semibold text-gray-900">
-                          Report Submitted
+                  {/* Handling Description correctly */}
+                  <Text className="font-bold text-gray-900 mb-1">
+                    Description:{" "}
+                    <Text className="font-normal">
+                      "
+                      {selectedRequest.incident?.description ||
+                        "No description provided"}
+                      "
+                    </Text>
+                  </Text>
+
+                  {/* Handling Officer population safely */}
+                  <Text className="font-bold text-gray-900 mb-1">
+                    Assigned Officer:{" "}
+                    <Text className="font-normal">
+                      {selectedRequest.assigned_officer
+                        ? `${selectedRequest.assigned_officer.first_name || ""} ${selectedRequest.assigned_officer.last_name || ""}`
+                        : "Unassigned"}
+                    </Text>
+                  </Text>
+
+                  <Text className="font-bold text-gray-900 mb-6">
+                    Status:{" "}
+                    <Text className="font-normal">
+                      {selectedRequest.status}
+                    </Text>
+                  </Text>
+
+                  <View className="h-[1px] bg-gray-300 mb-4" />
+
+                  {/* --- DYNAMIC STATUS TIMELINE --- */}
+                  <Text className="text-xl font-bold text-gray-900 mb-3">
+                    Status Timeline
+                  </Text>
+                  {/* Simplified Timeline View for now */}
+                  <View className="mb-6">
+                    <Text className="text-gray-500 italic">
+                      Timeline view coming soon...
+                    </Text>
+                  </View>
+
+                  <View className="h-[1px] bg-gray-300 mb-4" />
+
+                  {/* --- Attachments --- */}
+                  <Text className="text-xl font-bold text-gray-900 mb-3">
+                    Attachments & Evidence
+                  </Text>
+                  <View className="mb-4">
+                    <View className="w-full h-40 bg-gray-200 rounded-xl mb-2 items-center justify-center overflow-hidden">
+                      {/* Check if attachments exist and is array, or check photoEvidence field if you used that */}
+                      {selectedRequest.photoEvidence ||
+                      (selectedRequest.attachments &&
+                        selectedRequest.attachments.length > 0) ? (
+                        <Image
+                          source={{
+                            uri:
+                              selectedRequest.photoEvidence ||
+                              selectedRequest.attachments[0]?.url,
+                          }}
+                          style={{ width: "100%", height: "100%" }}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <Text className="text-gray-500">
+                          No Photo Available
                         </Text>
-                        <Text className="text-sm text-gray-600">
-                          Oct 13, 10:45 AM
-                        </Text>
-                      </View>
-                      <View className="mb-6">
-                        <Text className="font-semibold text-gray-900">
-                          Officer Assigned
-                        </Text>
-                        <Text className="text-sm text-gray-600">
-                          Oct 14, 11:05 AM
-                        </Text>
-                      </View>
-                      <View className="mb-6">
-                        <Text className="font-semibold text-gray-900">
-                          Investigation Ongoing
-                        </Text>
-                        <Text className="text-sm text-gray-600">
-                          Oct 14, 1:30 PM
-                        </Text>
-                      </View>
-                      <View>
-                        <Text className="font-semibold text-gray-900">
-                          Awaiting Feedback
-                        </Text>
-                        <Text className="text-sm text-gray-600">
-                          Oct 15, 09:00 AM
-                        </Text>
-                      </View>
+                      )}
                     </View>
                   </View>
-                </View>
 
-                <View className="h-[1px] bg-gray-300 mb-4" />
+                  <View className="h-[1px] bg-gray-300 mb-4" />
 
-                {/* --- Attachments --- */}
-                <Text className="text-xl font-bold text-gray-900 mb-3">
-                  Attachments & Evidence
-                </Text>
-                <View className="mb-4">
-                  <View className="w-full h-40 bg-gray-200 rounded-xl mb-2 items-center justify-center">
-                    <Text className="text-gray-500">Photo Placeholder</Text>
-                  </View>
-                  <Text className="text-sm text-gray-600">
-                    Attached image of the location where the incident occurred.
+                  {/* --- Communication Options --- */}
+                  <Text className="text-xl font-bold text-gray-900 mb-3">
+                    Communication Options
                   </Text>
+                  <View className="space-y-3 mb-10">
+                    <TouchableOpacity
+                      onPress={() =>
+                        Alert.alert("Message", "Feature coming soon")
+                      }
+                    >
+                      <Text className="text-blue-700 text-base">
+                        • Message Officer
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() =>
+                        Alert.alert("Update", "Requesting update...")
+                      }
+                    >
+                      <Text className="text-blue-700 text-base">
+                        • Request Update
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-
-                <View className="h-[1px] bg-gray-300 mb-4" />
-
-                {/* --- Communication Options --- */}
-                <Text className="text-xl font-bold text-gray-900 mb-3">
-                  Communication Options
-                </Text>
-
-                <View className="space-y-3 mb-10">
-                  <TouchableOpacity onPress={handleMessageOfficer}>
-                    <Text className="text-blue-700 text-base">
-                      • Message Officer
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity onPress={handleCallStation}>
-                    <Text className="text-blue-700 text-base">
-                      • Call Station
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity onPress={handleRequestUpdate}>
-                    <Text className="text-blue-700 text-base">
-                      • Request Update
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </ScrollView>
+              </ScrollView>
+            )}
           </Animated.View>
         </View>
       </Modal>
