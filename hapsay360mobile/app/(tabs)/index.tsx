@@ -122,7 +122,7 @@ export default function HomeScreen() {
         contentContainerStyle={{
           paddingTop: 60,
           paddingHorizontal: 16,
-          paddingBottom: 0,
+          paddingBottom: 40, // Added padding bottom for scrolling space
         }}
       >
         {/* Action Cards Grid */}
@@ -363,7 +363,10 @@ export default function HomeScreen() {
                     <Circle cx="72" cy="72" r="72" fill="url(#grad)" />
                   </Svg>
                   <View
-                    style={{ alignItems: "center", justifyContent: "center" }}
+                    style={{
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
                   >
                     <Text className="text-white text-2xl font-bold">SOS</Text>
                     <Text className="text-white text-[12px]">
@@ -372,6 +375,134 @@ export default function HomeScreen() {
                   </View>
                 </View>
               </Pressable>
+            </View>
+          </View>
+        </View>
+
+        {/* ======================================================= */}
+        {/* NEW FEATURE: ANNOUNCEMENTS & NEWS                       */}
+        {/* ======================================================= */}
+        <View className="px-1 pb-10">
+          {/* Section Divider */}
+          <View
+            style={{
+              height: 1,
+              width: "100%",
+              backgroundColor: isDark ? "#ffffff" : "#000000",
+              opacity: 0.2,
+              marginBottom: 20,
+            }}
+          />
+
+          {/* Section Title */}
+          <Text
+            className="text-lg font-bold text-center mb-5"
+            style={{ color: isDark ? "#ffffff" : "#000000" }}
+          >
+            Announcements & News
+          </Text>
+
+          {/* News Items Container */}
+          <View className="gap-y-4">
+            {/* Card 1: Case Update */}
+            <View
+              className="flex-row rounded-3xl p-3 items-center border"
+              style={{
+                backgroundColor: isDark ? "#2a3166" : "#ffffff",
+                borderColor: isDark ? "#3a4180" : "#1f2937",
+              }}
+            >
+              {/* Image Placeholder */}
+              <View className="w-28 h-20 bg-gray-400 rounded-2xl overflow-hidden mr-4">
+                <Image
+                  source={{
+                    uri: "https://picsum.photos/200/300?grayscale", // Placeholder image
+                  }}
+                  style={{ width: "100%", height: "100%" }}
+                  contentFit="cover"
+                />
+              </View>
+              {/* Text Content */}
+              <View className="flex-1 pr-2">
+                <Text
+                  className="font-bold text-base mb-1"
+                  style={{ color: isDark ? "#ffffff" : "#000000" }}
+                >
+                  Case Update
+                </Text>
+                <Text
+                  className="text-xs leading-4"
+                  style={{ color: isDark ? "#d1d5db" : "#4b5563" }}
+                >
+                  Investigation on recent theft case now under review.
+                </Text>
+              </View>
+            </View>
+
+            {/* Card 2: Curfew Reminder */}
+            <View
+              className="flex-row rounded-3xl p-3 items-center border"
+              style={{
+                backgroundColor: isDark ? "#2a3166" : "#ffffff",
+                borderColor: isDark ? "#3a4180" : "#1f2937",
+              }}
+            >
+              <View className="w-28 h-20 bg-gray-600 rounded-2xl overflow-hidden mr-4">
+                <Image
+                  source={{
+                    uri: "https://picsum.photos/200/301?grayscale",
+                  }}
+                  style={{ width: "100%", height: "100%" }}
+                  contentFit="cover"
+                />
+              </View>
+              <View className="flex-1 pr-2">
+                <Text
+                  className="font-bold text-base mb-1"
+                  style={{ color: isDark ? "#ffffff" : "#000000" }}
+                >
+                  Curfew Reminder
+                </Text>
+                <Text
+                  className="text-xs leading-4"
+                  style={{ color: isDark ? "#d1d5db" : "#4b5563" }}
+                >
+                  Curfew hours for minors remain at 10:00 PM–4:00 AM.
+                </Text>
+              </View>
+            </View>
+
+            {/* Card 3: Traffic Advisory */}
+            <View
+              className="flex-row rounded-3xl p-3 items-center border"
+              style={{
+                backgroundColor: isDark ? "#2a3166" : "#ffffff",
+                borderColor: isDark ? "#3a4180" : "#1f2937",
+              }}
+            >
+              <View className="w-28 h-20 bg-gray-500 rounded-2xl overflow-hidden mr-4">
+                <Image
+                  source={{
+                    uri: "https://picsum.photos/200/302?grayscale",
+                  }}
+                  style={{ width: "100%", height: "100%" }}
+                  contentFit="cover"
+                />
+              </View>
+              <View className="flex-1 pr-2">
+                <Text
+                  className="font-bold text-base mb-1"
+                  style={{ color: isDark ? "#ffffff" : "#000000" }}
+                >
+                  Traffic Advisory
+                </Text>
+                <Text
+                  className="text-xs leading-4"
+                  style={{ color: isDark ? "#d1d5db" : "#4b5563" }}
+                >
+                  Expect heavy traffic near Vamenta.
+                </Text>
+              </View>
             </View>
           </View>
         </View>
